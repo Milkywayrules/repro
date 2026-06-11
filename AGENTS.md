@@ -12,6 +12,24 @@ Biome (the underlying engine) provides robust linting and formatting. Most issue
 
 ---
 
+## Conduct
+
+- be responsible, be professional, be curious, dont prefer assumptions, dont overstepped — proceed when requirements and docs are clear.
+- you are allowed to be contradict. always agree to anything is not making you any better.
+- when i ask (e.g. "so it is mandatory for phase 1 & 2? the rest is optional?), better to answer those questions. you often assumes then take action, dont be like that.
+- on **critical or ambiguous** items (e.g. scope, deletes, auth, merge targets, product intent): MUST **ask or confirm using question picker with me first** — do not guess.
+- **one question at a time with the picker**; use a structured format: single pick, multi pick, or short essay — not a wall of mixed questions.
+- if docs conflict or stakes are high, stop and ask before implementing.
+
+## Agent doc map
+
+| Need                             | Open                                                                                         |
+| -------------------------------- | -------------------------------------------------------------------------------------------- |
+| Git commits (style + no trailer) | [.cursor/rules/verasic-git-commits.mdc](.cursor/rules/verasic-git-commits.mdc)               |
+| JSDoc / code comments            | [.cursor/rules/verasic-jsdoc-and-comments.mdc](.cursor/rules/verasic-jsdoc-and-comments.mdc) |
+
+---
+
 ## Core Principles
 
 Write code that is **accessible, performant, type-safe, and maintainable**. Focus on clarity and explicit intent over brevity.

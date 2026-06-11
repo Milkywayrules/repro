@@ -1,0 +1,99 @@
+---
+description: verasic-jsdoc-and-comments — JSDoc and inline comment casing, @example count and format
+globs:
+  - app/**/*.ts
+  - app/**/*.tsx
+  - app/**/*.js
+  - app/**/*.jsx
+  - src/**/*.ts
+  - src/**/*.tsx
+  - src/**/*.js
+  - src/**/*.jsx
+alwaysApply: false
+---
+
+# verasic-jsdoc-and-comments
+
+Portable Verasic rule — copy to `.cursor/rules/verasic-jsdoc-and-comments.mdc` in any repo. Pair with `verasic-git-commits.mdc` (same casing for commits).
+
+**Optional `AGENTS.md` row:**
+
+```markdown
+| JSDoc / code comments | [.cursor/rules/verasic-jsdoc-and-comments.mdc](.cursor/rules/verasic-jsdoc-and-comments.mdc) |
+```
+
+**Optional long-form spec:** some repos add `docs/conventions/jsdoc-and-comments.md` and link it from `AGENTS.md`. This rule is enough on its own; the doc is supplementary.
+
+Applies to **block comments, JSDoc, and inline comments in source files** — not markdown docs, not commit messages (see `verasic-git-commits.mdc`).
+
+Adjust **`globs`** in the frontmatter to match your source roots (`app/`, `src/`, `packages/*/src/`, etc.).
+
+## Casing
+
+- lowercase first sentence (and after `.`, `?`, `!`, `;`, `:`, `—`)
+- natural casing for types, acronyms, API routes, component names, field labels (`User ID`, `BRANCH`, `PROJ-1234`)
+- inline code (backticks) for technical literals when helpful — same idea as `verasic-git-commits.mdc`: CLI flags (`--dry-run`), paths (`src/utils/foo.ts`), commands (`npm run test`)
+
+## JSDoc content
+
+- explain **intent and data flow** — types stay in TypeScript; do not duplicate `@param` / `@returns` types unless the name alone is unclear
+- inline comments: **why**, not what the code already says
+- skip JSDoc on obvious getters/setters and self-describing one-liners
+
+## `@example` count
+
+| Complexity | Count |
+| --- | --- |
+| very simple (unary / obvious args → output) | **1** |
+| more than very simple (payload mappers, nested shapes, branching, store wiring) | **≥ 2** |
+
+## `@example` format
+
+**Very simple** — real call, then `=>` result on the next line:
+
+```typescript
+/**
+ * format user display name for list cells.
+ *
+ * @example
+ * formatDisplayName('  alice  ')
+ * => 'Alice'
+ */
+```
+
+**More than very simple** — optional `// input:` sketch, real call(s), `=>` result shape. Always use the **real function name**:
+
+```typescript
+/**
+ * map API row to table column value.
+ *
+ * @example
+ * // input: { status: 'ACTIVE', branch_code: 'JKT' }
+ * mapRowStatus({ status: 'ACTIVE', branch_code: 'JKT' })
+ * => 'Active · JKT'
+ *
+ * @example
+ * mapRowStatus({ status: undefined, branch_code: '' })
+ * => '-'
+ */
+```
+
+## When to document
+
+| Sit | Action |
+| --- | --- |
+| exported util, hook, mapper, store action | JSDoc + `@example` per count rule |
+| internal helper, obvious from name + types | inline **why** only if non-obvious |
+| React component props (public/shared) | brief file or props block comment if behavior is not obvious from JSX |
+| generated or trivial pass-through | skip |
+
+## PR checklist (comments only)
+
+- first sentence lowercase; acronyms/types natural casing
+- no `@param` type duplication when TS already types it
+- `@example` count matches complexity; examples use real symbols and plausible values
+- commit message for the same change follows `verasic-git-commits.mdc`
+
+## Repo-specific overlays
+
+Team or initiative docs may add stricter rules (e.g. mandatory `@example` on all exports). Keep those in the initiative doc; do not fork Verasic casing defaults per repo unless the team explicitly changes them.
