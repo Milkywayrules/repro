@@ -1,0 +1,24 @@
+{
+  "name": "@repro/auth",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@repro/db": "workspace:*",
+    "@repro/env": "workspace:*",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@repro/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}
