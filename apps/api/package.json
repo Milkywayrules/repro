@@ -3,11 +3,12 @@
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
-    "build": "tsdown",
+    "build:tsdown": "tsdown",
+    "start:tsdown": "bun run dist/index.mjs",
     "check-types": "tsc --noEmit",
-    "compile": "bun build --compile --minify-whitespace --minify-syntax --target bun --outfile ./dist/server ./src/index.ts",
+    "build": "bun build --compile --minify-whitespace --minify-syntax --target bun --outfile ./dist/server ./src/index.ts",
     "dev": "bun run --hot src/index.ts",
-    "start": "bun run dist/index.mjs"
+    "start": "./dist/server"
   },
   "dependencies": {
     "@elysiajs/cors": "^1.4.1",
