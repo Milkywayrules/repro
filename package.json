@@ -32,11 +32,9 @@
     "db:migrate": "turbo -F @repro/db db:migrate",
     "check": "ultracite check",
     "fix": "ultracite fix",
-
     "setup:local": "bash scripts/setup-local.sh",
     "sync:local-infra": "bun scripts/sync-local-infra.ts",
     "configure-product": "bun scripts/configure-product.ts",
-
     "postinstall": "bash scripts/postinstall.sh"
   },
   "dependencies": {

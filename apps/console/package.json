@@ -5,7 +5,7 @@
   "scripts": {
     "build": "vite build --configLoader runner",
     "build:staging": "vite build --mode staging --configLoader runner",
-    "check-types": "tsc --noEmit",
+    "check-types": "tsr generate && tsc --noEmit",
     "serve": "vite preview --configLoader runner",
     "start": "bun run dist/server/server.js",
     "dev": "vite dev --configLoader runner"
@@ -32,6 +32,7 @@
   },
   "devDependencies": {
     "@repro/config": "workspace:*",
+    "@tanstack/router-cli": "^1.167.17",
     "@tanstack/react-router-devtools": "^1.166.13",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.2",
