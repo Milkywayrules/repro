@@ -1,0 +1,6 @@
+# generated — merge into /etc/hosts (and Windows hosts on WSL2)
+127.0.0.1 userepro.test
+127.0.0.1 www.userepro.test
+127.0.0.1 api.userepro.test
+127.0.0.1 console.userepro.test
+127.0.0.1 docs.userepro.test

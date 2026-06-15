@@ -1,0 +1,50 @@
+name: Migrate (escape hatch)
+
+# Optional migrate escape hatch — NOT the primary path.
+#
+# Primary migrate: Railway api pre-deploy (`bun run db:migrate` in infra/railway/api.toml).
+# Runs inside Railway's network with internal DATABASE_URL from Doppler Sync.
+#
+# Use this workflow only when you need to run migrations outside a Railway deploy
+# (e.g. debugging, emergency fix). Manual workflow_dispatch only.
+#
+# Prerequisites (see infra/doppler/README.md, infra/railway/DEPLOY-RUNBOOK.md):
+#   - GitHub Environments: `staging`, `production`
+#   - Each environment: secret `DATABASE_URL` (Doppler → GitHub Secrets sync, or manual)
+#     — Doppler `api/stg` → GitHub `staging`; `api/prd` → GitHub `production`
+#
+# What this workflow does:
+#   - check-types, then `db:migrate` using GitHub Environment `DATABASE_URL`
+#
+# What this workflow does NOT do:
+#   - App redeploy — Railway auto-deploys on merge via GitHub integration.
+#   - Doppler CLI — secrets are synced to GitHub Environment secrets directly.
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        type: choice
+        options: [staging, production]
+
+concurrency:
+  group: migrate-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - run: bun install --frozen-lockfile
+      - name: Typecheck
+        run: bun run check-types
+      - name: Run DB migrations (escape hatch)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: bun run db:migrate

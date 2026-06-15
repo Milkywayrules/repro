@@ -1,0 +1,194 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  APP_ENV: test
+  DEPLOY_PLATFORM: local
+  NODE_ENV: test
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Lint and format
+        run: bun run check
+
+      - name: Typecheck
+        run: bun run check-types
+
+      - name: Typecheck docs
+        run: turbo -F docs types:check
+
+      - name: Build
+        env:
+          DATABASE_URL: postgresql://postgres:password@localhost:5432/postgres
+          BETTER_AUTH_SECRET: ci-ci-ci-ci-ci-ci-ci-ci-ci-ci-ci-ci-ci
+        run: bun run build
+
+      - name: Run DB migrations
+        env:
+          DATABASE_URL: postgresql://postgres:password@localhost:5432/postgres
+        run: bun run db:migrate
+
+      - name: Smoke test API (/health, /ready)
+        env:
+          DATABASE_URL: postgresql://postgres:password@localhost:5432/postgres
+          BETTER_AUTH_SECRET: ci-ci-ci-ci-ci-ci-ci-ci-ci-ci-ci-ci-ci
+          PORT: "5000"
+        run: |
+          bun run apps/api/dist/index.mjs &
+          API_PID=$!
+          for _ in $(seq 1 30); do
+            curl -fsS http://localhost:5000/health > /dev/null && break
+            sleep 1
+          done
+          curl -fsS http://localhost:5000/health
+          curl -fsS http://localhost:5000/ready
+          kill "$API_PID"
+
+      - name: Dependency audit
+        continue-on-error: true
+        run: bun audit
+
+      - name: Build Firefox extension zip
+        run: bun run --filter browser-extension zip:firefox
+
+  docker-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: api
+            port: 5000
+            health: /health
+          - app: console
+            port: 5001
+            health: /
+          - app: docs
+            port: 5009
+            health: /
+          - app: marketing
+            port: 8080
+            health: /
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build ${{ matrix.app }} image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/${{ matrix.app }}/Dockerfile
+          push: false
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: repro-${{ matrix.app }}:ci
+
+      - name: Boot and probe
+        run: |
+          set -euo pipefail
+
+          on_fail() {
+            echo "::group::probe container logs"
+            docker logs probe 2>&1 || true
+            echo "::endgroup::"
+            exit 1
+          }
+
+          docker run -d --name probe --network host \
+            -e PORT=${{ matrix.port }} \
+            -e DATABASE_URL=postgresql://postgres:password@localhost:5432/postgres \
+            -e BETTER_AUTH_SECRET=ci-ci-ci-ci-ci-ci-ci-ci-ci-ci-ci-ci-ci \
+            -e APP_ENV=test \
+            -e DEPLOY_PLATFORM=local \
+            repro-${{ matrix.app }}:ci
+
+          URL="http://localhost:${{ matrix.port }}${{ matrix.health }}"
+          ready=false
+
+          for _ in $(seq 1 30); do
+            if [ "${{ matrix.app }}" = "api" ]; then
+              if curl -fsS "$URL" > /dev/null 2>&1; then
+                ready=true
+                break
+              fi
+            elif curl -fsS "$URL" > /dev/null 2>&1 || curl -sS -o /dev/null "$URL" 2>/dev/null; then
+              ready=true
+              break
+            fi
+            sleep 2
+          done
+
+          if [ "$ready" != "true" ]; then
+            echo "Server did not become reachable at $URL within ~60s"
+            on_fail
+          fi
+
+          if [ "${{ matrix.app }}" = "api" ]; then
+            curl -fsS "http://localhost:${{ matrix.port }}/health" || on_fail
+            curl -fsS "http://localhost:${{ matrix.port }}/ready" || on_fail
+          fi
+
+          echo "Probe succeeded for ${{ matrix.app }} at $URL"
+
+      - name: Remove probe container
+        if: always()
+        run: docker rm -f probe 2>/dev/null || true
+
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,12 @@
+{
+  "extends": "@repro/config/tsconfig.base.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "jsx": "react-jsx",
+    "strictNullChecks": true
+  }
+}

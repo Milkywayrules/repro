@@ -1,5 +1,9 @@
 {
   "mcpServers": {
+    "Sentry": {
+      "url": "https://mcp.sentry.dev/mcp",
+      "headers": {}
+    },
     "playwright": {
       "command": "bunx",
       "args": ["@playwright/mcp@latest"]
@@ -10,6 +14,14 @@
     "shadcn": {
       "command": "bunx",
       "args": ["shadcn@latest", "mcp"]
+    },
+    "next-devtools": {
+      "command": "bunx",
+      "args": ["-y", "next-devtools-mcp@latest"]
+    },
+    "Astro docs": {
+      "url": "https://mcp.docs.astro.build/mcp",
+      "headers": {}
     }
   }
 }

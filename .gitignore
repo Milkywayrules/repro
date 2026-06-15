@@ -9,11 +9,16 @@ build
 *.tsbuildinfo
 
 # Generated files
-apps/web/src/routeTree.gen.ts
+apps/console/src/routeTree.gen.ts
 
 # Environment variables
 .env
 .env*.local
+
+# Local mkcert artifacts (generate per machine — never commit)
+_wildcard*.pem
+infra/certs/local/*.pem
+!infra/certs/local/.gitkeep
 
 # IDEs and editors
 .vscode/*

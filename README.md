@@ -1,103 +1,115 @@
 # repro
 
-This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines React, TanStack Start, Elysia, and more.
+Better-T-Stack monorepo: TanStack Start console, Elysia API, Astro marketing, Fumadocs docs, Better Auth, Drizzle + PostgreSQL.
 
-## Features
+## Product hostnames
 
-- **TypeScript** - For type safety and improved developer experience
-- **TanStack Start** - SSR framework with TanStack Router
-- **TailwindCSS** - Utility-first CSS for rapid UI development
-- **Shared UI package** - shadcn/ui primitives live in `packages/ui`
-- **Elysia** - Type-safe, high-performance framework
-- **Bun** - Runtime environment
-- **Drizzle** - TypeScript-first ORM
-- **PostgreSQL** - Database engine
-- **Authentication** - Better-Auth
-- **Biome** - Linting and formatting
-- **Turborepo** - Optimized monorepo build system
+Three constants in [`packages/env/src/lib/product.ts`](packages/env/src/lib/product.ts) drive every URL, cookie domain, CSP, and generated nginx/hosts file:
 
-## Getting Started
+| Constant | Default | Result |
+| -------- | ------- | ------ |
+| `productSlug` | `userepro` | hostname label |
+| `localTld` | `test` | local base → `userepro.test` |
+| `cloudTld` | `dev` | cloud base → `userepro.dev` |
 
-First, install the dependencies:
+Surfaces: `api.`, `console.`, `docs.` + marketing apex. Staging uses `stg-*` prefixes on the cloud base.
+
+---
+
+## Use cases
+
+### 1. First clone (same product name)
 
 ```bash
 bun install
-```
-
-## Database Setup
-
-This project uses PostgreSQL with Drizzle ORM.
-
-1. Make sure you have a PostgreSQL database set up.
-2. Update your `apps/server/.env` file with your PostgreSQL connection details.
-
-3. Apply the schema to your database:
-
-```bash
+cp apps/api/.env.example apps/api/.env   # fill BETTER_AUTH_SECRET
+bun run setup:local                    # sync infra + mkcert + nginx
+# merge infra/hosts.example → /etc/hosts (+ Windows hosts if WSL)
 bun run db:push
+bun run dev
 ```
 
-Then, run the development server:
+Open **https://console.userepro.test** (not `localhost` ports — auth cookies need HTTPS hostnames).
+
+Details: [infra/README.md](infra/README.md), [infra/certs/README.md](infra/certs/README.md).
+
+### 2. Daily dev
 
 ```bash
 bun run dev
 ```
 
-Open [http://localhost:3001](http://localhost:3001) in your browser to see the web application.
-The API is running at [http://localhost:3000](http://localhost:3000).
-
-## UI Customization
-
-React web apps in this stack share shadcn/ui primitives through `packages/ui`.
-
-- Change design tokens and global styles in `packages/ui/src/styles/globals.css`
-- Update shared primitives in `packages/ui/src/components/*`
-- Adjust shadcn aliases or style config in `packages/ui/components.json` and `apps/web/components.json`
-
-### Add more shared components
-
-Run this from the project root to add more primitives to the shared UI package:
+### 3. Fork template → new product slug
 
 ```bash
-npx shadcn@latest add accordion dialog popover sheet table -c packages/ui
+bun run configure-product myapp --local-tld test --cloud-tld dev
+bun run setup:local
+# update /etc/hosts from infra/hosts.example
+bun run dev
 ```
 
-Import shared components like this:
+`configure-product` updates `product.ts` and regenerates `infra/nginx/local.conf` + `infra/hosts.example`.
 
-```tsx
-import { Button } from "@repro/ui/components/button";
+### 4. Hand-edit `product.ts` (slug or TLD only)
+
+```bash
+# edit packages/env/src/lib/product.ts
+bun run sync:local-infra
+bun run setup:local          # if local base changed (certs/nginx)
+# update hosts if local base changed
 ```
 
-### Add app-specific blocks
+Prefer **use case 3** — same outcome, validated CLI args.
 
-If you want to add app-specific blocks instead of shared primitives, run the shadcn CLI from `apps/web`.
+### 5. Check local prereqs
 
-## Git Hooks and Formatting
+```bash
+bash scripts/check-local-prereqs.sh
+```
 
-- Run checks: `bun run check`
+---
 
-## Project Structure
+## Scripts
+
+| Command | When |
+| ------- | ---- |
+| `bun run configure-product <slug>` | New slug / TLDs (writes `product.ts` + sync) |
+| `bun run sync:local-infra` | After manual `product.ts` edit |
+| `bun run setup:local` | First clone, or after local base change (sync + TLS + nginx) |
+| `bun run dev` | Start all apps |
+| `bun run db:push` | Apply Drizzle schema |
+
+Deploy topology: [infra/blueprint.md](infra/blueprint.md). Agent guide: [AGENTS.md](AGENTS.md).
+
+---
+
+## Database
+
+PostgreSQL via Docker Compose or external URL in `apps/api/.env`:
+
+```bash
+docker compose up -d db
+bun run db:push
+```
+
+## UI
+
+Shared shadcn/ui in `packages/ui`. Add components:
+
+```bash
+npx shadcn@latest add button -c packages/ui
+```
+
+## Project structure
 
 ```
 repro/
-├── apps/
-│   ├── web/         # Frontend application (React + TanStack Start)
-│   └── server/      # Backend API (Elysia)
-├── packages/
-│   ├── ui/          # Shared shadcn/ui components and styles
-│   ├── auth/        # Authentication configuration & logic
-│   └── db/          # Database schema & queries
+├── apps/          api, console, marketing, docs, browser-extension
+├── packages/      env (product + topology), auth, db, ui
+├── infra/         nginx/local.conf, hosts.example, deploy docs
+└── scripts/       configure-product, sync-local-infra, setup-local
 ```
 
-## Available Scripts
+## Git hooks
 
-- `bun run dev`: Start all applications in development mode
-- `bun run build`: Build all applications
-- `bun run dev:web`: Start only the web application
-- `bun run dev:server`: Start only the server
-- `bun run check-types`: Check TypeScript types across all apps
-- `bun run db:push`: Push schema changes to database
-- `bun run db:generate`: Generate database client/types
-- `bun run db:migrate`: Run database migrations
-- `bun run db:studio`: Open database studio UI
-- `bun run check`: Run Biome formatting and linting
+`bun run check` — Biome via Ultracite.

@@ -2,10 +2,7 @@
   "name": "repro",
   "private": true,
   "workspaces": {
-    "packages": [
-      "apps/*",
-      "packages/*"
-    ],
+    "packages": ["apps/*", "packages/*"],
     "catalog": {
       "dotenv": "^17.2.2",
       "zod": "^4.1.13",
@@ -25,14 +22,22 @@
     "dev": "turbo dev",
     "build": "turbo build",
     "check-types": "turbo check-types",
-    "dev:web": "turbo -F web dev",
-    "dev:server": "turbo -F server dev",
+    "dev:console": "turbo -F console dev",
+    "dev:api": "turbo -F api dev",
+    "dev:marketing": "turbo -F marketing dev",
+    "dev:docs": "turbo -F docs dev",
     "db:push": "turbo -F @repro/db db:push",
     "db:studio": "turbo -F @repro/db db:studio",
     "db:generate": "turbo -F @repro/db db:generate",
     "db:migrate": "turbo -F @repro/db db:migrate",
     "check": "ultracite check",
-    "fix": "ultracite fix"
+    "fix": "ultracite fix",
+
+    "setup:local": "bash scripts/setup-local.sh",
+    "sync:local-infra": "bun scripts/sync-local-infra.ts",
+    "configure-product": "bun scripts/configure-product.ts",
+
+    "postinstall": "bash scripts/postinstall.sh"
   },
   "dependencies": {
     "@repro/env": "workspace:*",

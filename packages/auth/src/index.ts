@@ -1,19 +1,19 @@
-import { createDb } from "@repro/db";
-import * as schema from "@repro/db/schema/auth";
-import { env } from "@repro/env/server";
-import { betterAuth } from "better-auth";
-import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { db } from '@repro/db'
+import { account, session, user, verification } from '@repro/db/schema/auth'
+import { env } from '@repro/env/api'
+import { betterAuth } from 'better-auth'
+import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+
+const authSchema = { user, session, account, verification }
 
 export function createAuth() {
-  const db = createDb();
-
   return betterAuth({
     database: drizzleAdapter(db, {
-      provider: "pg",
+      provider: 'pg',
 
-      schema: schema,
+      schema: authSchema,
     }),
-    trustedOrigins: [env.CORS_ORIGIN],
+    trustedOrigins: env.CORS_ORIGINS,
     emailAndPassword: {
       enabled: true,
     },
@@ -21,13 +21,14 @@ export function createAuth() {
     baseURL: env.BETTER_AUTH_URL,
     advanced: {
       defaultCookieAttributes: {
-        sameSite: "none",
+        sameSite: 'lax',
         secure: true,
         httpOnly: true,
+        domain: env.AUTH_COOKIE_DOMAIN,
       },
     },
     plugins: [],
-  });
+  })
 }
 
-export const auth = createAuth();
+export const auth = createAuth()

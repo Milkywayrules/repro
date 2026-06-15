@@ -1,0 +1,25 @@
+{
+  "name": "marketing",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "build:staging": "astro build --mode staging",
+    "preview": "astro preview",
+    "check-types": "astro check",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@repro/env": "workspace:*",
+    "astro": "^6.4.6"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.6",
+    "typescript": "catalog:",
+    "vite": "^7.3.5"
+  }
+}

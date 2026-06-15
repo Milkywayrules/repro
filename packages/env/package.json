@@ -4,8 +4,11 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./server": "./src/server.ts",
-    "./web": "./src/web.ts"
+    "./api": "./src/api.ts",
+    "./console": "./src/console.ts",
+    "./marketing": "./src/marketing.ts",
+    "./docs": "./src/docs.ts",
+    "./topology": "./src/topology.ts"
   },
   "dependencies": {
     "@t3-oss/env-core": "^0.13.1",

@@ -1,6 +1,8 @@
 {
   "extends": "@repro/config/tsconfig.base.json",
   "compilerOptions": {
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true
   }
 }

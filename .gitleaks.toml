@@ -1,0 +1,15 @@
+title = "repro gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "CI fixtures and example env files"
+paths = [
+  '''\.github/workflows/ci\.yml''',
+  '''\.github/workflows/deploy\.yml''',
+  '''.*\.env\.example''',
+]
+regexes = [
+  '''ci-ci-ci-ci-ci-ci-ci-ci-ci-ci-ci-ci-ci''',
+]

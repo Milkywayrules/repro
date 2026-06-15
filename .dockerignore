@@ -1,0 +1,18 @@
+.git
+node_modules
+**/node_modules
+**/dist
+**/.output
+**/.next
+**/.turbo
+**/.astro
+.agents
+_bmad
+.cursor
+.vscode
+# Browser extension — not deployed via Docker; keep package.json for workspace lockfile
+apps/browser-extension/**
+!apps/browser-extension/package.json
+**/.env
+infra/certs/local/*
+*.log

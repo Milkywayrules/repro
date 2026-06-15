@@ -1,0 +1,1283 @@
+// ============================================================================
+// BIOME CONFIGURATION v2.3.15 - COMPLETE WITH DEFAULT VALUE DOCUMENTATION
+// ============================================================================
+//
+// This configuration file contains EVERY available Biome option explicitly
+// written with JSDoc-style comments documenting default values and behavior.
+//
+// STATISTICS:
+// - Total lines: 1,223
+// - Configuration options: 90+ (formatter, parser, linter, assist)
+// - Linter rules: 500+ across 8 groups
+// - Languages: JavaScript/TypeScript, JSON, CSS, HTML
+//
+// STRUCTURE:
+// ├── Top-level: $schema, root, extends, files, vcs, overrides, plugins
+// ├── Formatter: Global formatting options (11 options)
+// ├── Linter: Rule groups and 500+ individual rules
+// │   ├── a11y (38 rules)
+// │   ├── complexity (40 rules)
+// │   ├── correctness (70 rules)
+// │   ├── performance (12 rules)
+// │   ├── security (5 rules)
+// │   ├── style (80 rules)
+// │   ├── suspicious (120 rules)
+// │   └── nursery (100+ experimental rules)
+// ├── Assist: Code actions and import organization
+// └── Language-specific: JavaScript, JSON, CSS, HTML
+//     └── Each with: parser, formatter, linter, assist
+//
+// DEFAULT VALUE NOTATION (Conservative Approach):
+// ┌─────────────────────────────────────────────────────────────────────────┐
+// │ /** @default <value> */                                                 │
+// │   → Exact default value for configuration options                       │
+// │                                                                         │
+// │ /** Enabled when recommended: true */                                   │
+// │   → Rule is active when its group has `recommended: true`               │
+// │   → Actual severity varies by rule (error/warn/info)                    │
+// │   → Check IDE diagnostics or docs for specific severity                 │
+// │                                                                         │
+// │ /** @default "off" */                                                   │
+// │   → Rule is disabled by default, even when `recommended: true`          │
+// │                                                                         │
+// │ Setting a rule to `null` means "use the default behavior"               │
+// │ To override: change `null` to "off", "warn", "error", or "info"         │
+// └─────────────────────────────────────────────────────────────────────────┘
+//
+// PROJECT CUSTOMIZATIONS (Migrated from ESLint/Prettier):
+// ┌─────────────────────────────────────────────────────────────────────────┐
+// │ Linter Rules:                                                           │
+// │   • correctness.noUndeclaredVariables: "error" (was: ESLint no-undef)   │
+// │   • correctness.noUnusedVariables: "warn" (was: ESLint no-unused-vars)  │
+// │   • style.noParameterAssign: "warn" (was: ESLint no-param-reassign)     │
+// │   • suspicious.noVar: "error" (was: ESLint no-var)                      │
+// │                                                                         │
+// │ Formatter Options:                                                      │
+// │   • indentStyle: "space" (Prettier: useTabs: false)                     │
+// │   • javascript.quoteStyle: "single" (Prettier: singleQuote: true)       │
+// │   • javascript.semicolons: "asNeeded" (Prettier: semi: false)           │
+// │   • javascript.arrowParentheses: "asNeeded" (Prettier: arrowParens)     │
+// │   • javascript.trailingCommas: "all" (Prettier: trailingComma: 'all')   │
+// │                                                                         │
+// │ Parser Options:                                                         │
+// │   • javascript.jsxEverywhere: true (allow JSX in .js files)             │
+// │   • json.allowTrailingCommas: true (for .jsonc files)                   │
+// │   • css.tailwindDirectives: true (Tailwind CSS support)                 │
+// └─────────────────────────────────────────────────────────────────────────┘
+//
+// DOCUMENTATION:
+// - BIOME_MIGRATION_SUMMARY.md - Migration status from Prettier/ESLint
+// - Official docs: https://biomejs.dev/reference/configuration/
+//
+// ============================================================================
+
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  /** @default true */
+  "root": true,
+  /** @default null */
+  "extends": ["ultracite/biome/core", "ultracite/biome/react"],
+  "files": {
+    /** @default false - Ignore files unknown to Biome */
+    "ignoreUnknown": false,
+    /** @default 1048576 - Maximum file size in bytes (1 MB) */
+    "maxSize": 1048576,
+    /** @default null - Experimental scanner ignores */
+    "experimentalScannerIgnores": null,
+    /** @default [] - List of Unix shell style patterns */
+    "includes": [
+      "!**/.next",
+      "!**/dist",
+      "!**/.turbo",
+      "!**/.nx",
+      "!**/dev-dist",
+      "!**/.zed",
+      "!**/.vscode",
+      "!**/routeTree.gen.ts",
+      "!**/src-tauri",
+      "!**/.nuxt",
+      "!bts.jsonc",
+      "!**/.expo",
+      "!**/.wrangler",
+      "!**/.alchemy",
+      "!**/.svelte-kit",
+      "!**/wrangler.jsonc",
+      "!**/.source",
+      "!**/convex/_generated",
+
+      "!**/.agents",
+      "!**/.cursor",
+      "!**/_bmad"
+    ]
+  },
+  "vcs": {
+    /** @default true - Enable VCS integration */
+    "enabled": true,
+    /** @default "git" - VCS client kind */
+    "clientKind": "git",
+    /** @default true - Use .gitignore file */
+    "useIgnoreFile": true,
+    /** @default null - VCS root directory */
+    "root": null,
+    /** @default null - Default branch name */
+    "defaultBranch": null
+  },
+  "formatter": {
+    /** @default true - Enable the formatter */
+    "enabled": true,
+    /** @default null - Files to format (null = all) */
+    "includes": null,
+    /** @default false - Format code with syntax errors */
+    "formatWithErrors": false,
+    /** @default "tab" - Use "tab" or "space" for indentation */
+    "indentStyle": "space",
+    /** @default 2 - Number of spaces per indentation level */
+    "indentWidth": 2,
+    /** @default "lf" - Line ending style: "lf", "crlf", "cr" */
+    "lineEnding": "lf",
+    /** @default 80 - Maximum line width */
+    "lineWidth": 80,
+    /** @default "auto" - Attribute position: "auto", "multiline" */
+    "attributePosition": "auto",
+    /** @default false - Put closing bracket on same line */
+    "bracketSameLine": false,
+    /** @default true - Print spaces between brackets in object literals */
+    "bracketSpacing": true,
+    /** @default "auto" - Expand short syntax: "auto", "always", "never" */
+    "expand": "auto",
+    /** @default true - Use .editorconfig settings */
+    "useEditorconfig": true
+  },
+  "linter": {
+    /** @default true - Enable the linter */
+    "enabled": true,
+    /** @default null - Files to lint (null = all) */
+    "includes": null,
+    /** @default null - Domains for linting */
+    "domains": null,
+    "rules": {
+      /** @default true - Enable recommended rules */
+      "recommended": true,
+      "a11y": {
+        /** @default true - Enable recommended a11y rules */
+        "recommended": true,
+        /** Enabled when recommended: true */
+        "noAccessKey": null,
+        /** Enabled when recommended: true */
+        "noAriaHiddenOnFocusable": null,
+        /** Enabled when recommended: true */
+        "noAriaUnsupportedElements": null,
+        /** Enabled when recommended: true */
+        "noAutofocus": null,
+        /** Enabled when recommended: true */
+        "noDistractingElements": null,
+        /** Enabled when recommended: true */
+        "noHeaderScope": null,
+        /** Enabled when recommended: true */
+        "noInteractiveElementToNoninteractiveRole": null,
+        /** Enabled when recommended: true */
+        // "noLabelWithoutControl": null,
+        "noLabelWithoutControl": "warn",
+        /** Enabled when recommended: true */
+        "noNoninteractiveElementInteractions": null,
+        /** Enabled when recommended: true */
+        "noNoninteractiveElementToInteractiveRole": "warn",
+        /** Enabled when recommended: true */
+        "noNoninteractiveTabindex": null,
+        /** Enabled when recommended: true */
+        "noPositiveTabindex": null,
+        /** Enabled when recommended: true */
+        "noRedundantAlt": null,
+        /** Enabled when recommended: true */
+        "noRedundantRoles": null,
+        /** Enabled when recommended: true */
+        "noStaticElementInteractions": "off",
+        /** Enabled when recommended: true */
+        "noSvgWithoutTitle": "off",
+        /** Enabled when recommended: true */
+        "useAltText": null,
+        /** Enabled when recommended: true */
+        "useAnchorContent": null,
+        /** Enabled when recommended: true */
+        "useAriaActivedescendantWithTabindex": null,
+        /** Enabled when recommended: true */
+        "useAriaPropsForRole": null,
+        /** Enabled when recommended: true */
+        "useAriaPropsSupportedByRole": null,
+        /** Enabled when recommended: true */
+        "useButtonType": null,
+        /** Enabled when recommended: true */
+        "useFocusableInteractive": null,
+        /** Enabled when recommended: true */
+        "useGenericFontNames": null,
+        /** Enabled when recommended: true */
+        "useHeadingContent": null,
+        /** Enabled when recommended: true */
+        "useHtmlLang": null,
+        /** Enabled when recommended: true */
+        "useIframeTitle": null,
+        /** Enabled when recommended: true */
+        // "useKeyWithClickEvents": null,
+        "useKeyWithClickEvents": "warn",
+        /** Enabled when recommended: true */
+        "useKeyWithMouseEvents": null,
+        /** Enabled when recommended: true */
+        "useMediaCaption": null,
+        /** @default "off" - Not enabled even when recommended: true */
+        "useSemanticElements": null,
+        /** Enabled when recommended: true */
+        // "useValidAnchor": null,
+        "useValidAnchor": "warn",
+        /** Enabled when recommended: true */
+        "useValidAriaProps": null,
+        /** Enabled when recommended: true */
+        "useValidAriaRole": null,
+        /** Enabled when recommended: true */
+        "useValidAriaValues": null,
+        /** Enabled when recommended: true */
+        "useValidAutocomplete": null,
+        /** Enabled when recommended: true */
+        "useValidLang": null
+      },
+      "complexity": {
+        /** @default true - Enable recommended complexity rules */
+        "recommended": true,
+        /** @default "off" */
+        "noAdjacentSpacesInRegex": null,
+        /** @default "off" */
+        "noArguments": null,
+        /** Enabled when recommended: true */
+        "noBannedTypes": null,
+        /** @default "off" */
+        "noCommaOperator": null,
+        /** Enabled when recommended: true */
+        "noEmptyTypeParameters": null,
+        /** @default "off" */
+        "noExcessiveCognitiveComplexity": null,
+        /** @default "off" */
+        "noExcessiveLinesPerFunction": null,
+        /** Enabled when recommended: true */
+        "noExcessiveNestedTestSuites": null,
+        /** Enabled when recommended: true */
+        "noExtraBooleanCast": null,
+        /** @default "off" */
+        "noFlatMapIdentity": null,
+        /** @default "off" */
+        "noForEach": null,
+        /** @default "off" */
+        "noImplicitCoercions": null,
+        /** @default "off" */
+        "noImportantStyles": null,
+        /** Enabled when recommended: true */
+        "noStaticOnlyClass": null,
+        /** Enabled when recommended: true */
+        "noThisInStatic": null,
+        /** Enabled when recommended: true */
+        "noUselessCatch": null,
+        /** @default "off" */
+        "noUselessCatchBinding": null,
+        /** Enabled when recommended: true */
+        "noUselessConstructor": null,
+        /** @default "off" */
+        "noUselessContinue": null,
+        /** Enabled when recommended: true */
+        "noUselessEmptyExport": null,
+        /** @default "off" */
+        "noUselessEscapeInRegex": null,
+        /** Enabled when recommended: true */
+        "noUselessFragments": "off",
+        /** Enabled when recommended: true */
+        "noUselessLabel": null,
+        /** Enabled when recommended: true */
+        "noUselessLoneBlockStatements": null,
+        /** Enabled when recommended: true */
+        "noUselessRename": null,
+        /** @default "off" */
+        "noUselessStringConcat": null,
+        /** @default "off" */
+        "noUselessStringRaw": null,
+        /** Enabled when recommended: true */
+        "noUselessSwitchCase": null,
+        /** Enabled when recommended: true */
+        "noUselessTernary": null,
+        /** Enabled when recommended: true */
+        "noUselessThisAlias": null,
+        /** Enabled when recommended: true */
+        "noUselessTypeConstraint": null,
+        /** @default "off" */
+        "noUselessUndefinedInitialization": null,
+        /** @default "off" */
+        "noUselessUndefined": null,
+        /** @default "off" */
+        "noVoid": null,
+        /** @default "off" */
+        "useArrowFunction": null,
+        /** @default "off" */
+        "useDateNow": null,
+        /** Enabled when recommended: true */
+        "useFlatMap": null,
+        /** @default "off" */
+        "useIndexOf": null,
+        /** Enabled when recommended: true */
+        "useLiteralKeys": null,
+        /** @default "off" */
+        "useMaxParams": null,
+        /** @default "off" */
+        "useNumericLiterals": null,
+        /** Enabled when recommended: true */
+        "useOptionalChain": null,
+        /** Enabled when recommended: true */
+        "useRegexLiterals": null,
+        /** Enabled when recommended: true */
+        "useSimpleNumberKeys": null,
+        /** @default "off" */
+        "useSimplifiedLogicExpression": null,
+        /** @default "off" */
+        "useWhile": null
+      },
+      "correctness": {
+        /** @default true - Enable recommended correctness rules */
+        "recommended": true,
+        /** Enabled when recommended: true */
+        "noChildrenProp": null,
+        /** Enabled when recommended: true */
+        "noConstAssign": null,
+        /** Enabled when recommended: true */
+        "noConstantCondition": null,
+        /** Enabled when recommended: true */
+        "noConstantMathMinMaxClamp": null,
+        /** Enabled when recommended: true */
+        "noConstructorReturn": null,
+        /** Enabled when recommended: true */
+        "noEmptyCharacterClassInRegex": null,
+        /** Enabled when recommended: true */
+        "noEmptyPattern": null,
+        /** @default "off" */
+        "noGlobalDirnameFilename": null,
+        /** Enabled when recommended: true */
+        "noGlobalObjectCalls": null,
+        /** Enabled when recommended: true */
+        "noInnerDeclarations": null,
+        /** Enabled when recommended: true */
+        "noInvalidBuiltinInstantiation": null,
+        /** Enabled when recommended: true */
+        "noInvalidConstructorSuper": null,
+        /** Enabled when recommended: true */
+        "noInvalidDirectionInLinearGradient": null,
+        /** Enabled when recommended: true */
+        "noInvalidGridAreas": null,
+        /** Enabled when recommended: true */
+        "noInvalidPositionAtImportRule": null,
+        /** Enabled when recommended: true */
+        "noInvalidUseBeforeDeclaration": null,
+        /** Enabled when recommended: true */
+        "noMissingVarFunction": null,
+        /** @default "off" */
+        "noNestedComponentDefinitions": null,
+        /** @default "off" */
+        "noNextAsyncClientComponent": null,
+        /** @default "off" */
+        "noNodejsModules": null,
+        /** Enabled when recommended: true */
+        "noNonoctalDecimalEscape": null,
+        /** Enabled when recommended: true */
+        "noPrecisionLoss": null,
+        /** @default "off" */
+        "noPrivateImports": null,
+        /** @default "off" */
+        "noProcessGlobal": null,
+        /** @default "off" */
+        "noQwikUseVisibleTask": null,
+        /** @default "off" */
+        "noReactPropAssignments": null,
+        /** Enabled when recommended: true */
+        "noRenderReturnValue": null,
+        /** @default "off" */
+        "noRestrictedElements": null,
+        /** Enabled when recommended: true */
+        "noSelfAssign": null,
+        /** Enabled when recommended: true */
+        "noSetterReturn": null,
+        /** @default "off" */
+        "noSolidDestructuredProps": null,
+        /** Enabled when recommended: true */
+        "noStringCaseMismatch": null,
+        /** Enabled when recommended: true */
+        "noSwitchDeclarations": null,
+        /** @default "off" */
+        "noUndeclaredDependencies": null,
+        /** @default "off" */
+        "noUndeclaredVariables": "error",
+        /** Enabled when recommended: true */
+        "noUnknownFunction": null,
+        /** Enabled when recommended: true */
+        "noUnknownMediaFeatureName": null,
+        /** Enabled when recommended: true */
+        "noUnknownProperty": null,
+        /** Enabled when recommended: true */
+        "noUnknownPseudoClass": null,
+        /** Enabled when recommended: true */
+        "noUnknownPseudoElement": null,
+        /** Enabled when recommended: true */
+        "noUnknownTypeSelector": null,
+        /** Enabled when recommended: true */
+        "noUnknownUnit": null,
+        /** Enabled when recommended: true */
+        "noUnmatchableAnbSelector": null,
+        /** Enabled when recommended: true */
+        "noUnreachable": null,
+        /** Enabled when recommended: true */
+        "noUnreachableSuper": null,
+        /** @default "off" */
+        "noUnresolvedImports": null,
+        /** Enabled when recommended: true */
+        "noUnsafeFinally": null,
+        /** Enabled when recommended: true */
+        "noUnsafeOptionalChaining": null,
+        /** @default "off" */
+        "noUnusedFunctionParameters": null,
+        /** Enabled when recommended: true */
+        "noUnusedImports": null,
+        /** Enabled when recommended: true */
+        "noUnusedLabels": null,
+        /** Enabled when recommended: true */
+        "noUnusedPrivateClassMembers": null,
+        /** Enabled when recommended: true */
+        "noUnusedVariables": "warn",
+        /** Enabled when recommended: true */
+        "noVoidElementsWithChildren": null,
+        /** Enabled when recommended: true */
+        "noVoidTypeReturn": null,
+        /** @default "off" */
+        "noVueDataObjectDeclaration": null,
+        /** @default "off" */
+        "noVueDuplicateKeys": null,
+        /** @default "off" */
+        "noVueReservedKeys": null,
+        /** @default "off" */
+        "noVueReservedProps": null,
+        /** @default "off" */
+        "noVueSetupPropsReactivityLoss": null,
+        /** Enabled when recommended: true */
+        "useExhaustiveDependencies": "warn",
+        /** @default "off" */
+        "useGraphqlNamedOperations": null,
+        /** Enabled when recommended: true */
+        "useHookAtTopLevel": null,
+        /** @default "off" */
+        "useImageSize": null,
+        /** @default "off" */
+        "useImportExtensions": null,
+        /** Enabled when recommended: true */
+        "useIsNan": null,
+        /** @default "off" */
+        "useJsonImportAttributes": null,
+        /** Enabled when recommended: true */
+        "useJsxKeyInIterable": null,
+        /** @default "off" */
+        "useParseIntRadix": null,
+        /** @default "off" */
+        "useQwikClasslist": null,
+        /** @default "off" */
+        "useQwikMethodUsage": null,
+        /** @default "off" */
+        "useQwikValidLexicalScope": null,
+        /** @default "off" */
+        "useSingleJsDocAsterisk": null,
+        /** @default "off" */
+        "useUniqueElementIds": null,
+        /** Enabled when recommended: true */
+        "useValidForDirection": null,
+        /** Enabled when recommended: true */
+        "useValidTypeof": null,
+        /** Enabled when recommended: true */
+        "useYield": null
+      },
+      "performance": {
+        /** @default true - Enable recommended performance rules */
+        "recommended": true,
+        /** Enabled when recommended: true */
+        "noAccumulatingSpread": null,
+        /** @default "off" */
+        "noAwaitInLoops": null,
+        /** @default "off" */
+        "noBarrelFile": null,
+        /** Enabled when recommended: true */
+        "noDelete": null,
+        /** @default "off" */
+        "noDynamicNamespaceImportAccess": null,
+        /** @default "off" */
+        "noImgElement": null,
+        /** @default "off" */
+        "noNamespaceImport": null,
+        /** @default "off" */
+        "noReExportAll": null,
+        /** @default "off" */
+        "noUnwantedPolyfillio": null,
+        /** @default "off" */
+        "useGoogleFontPreconnect": null,
+        /** @default "off" */
+        "useSolidForComponent": null,
+        /** @default "off" */
+        "useTopLevelRegex": null
+      },
+      "security": {
+        /** @default true - Enable recommended security rules */
+        "recommended": true,
+        /** @default "off" */
+        "noBlankTarget": null,
+        /** Enabled when recommended: true */
+        "noDangerouslySetInnerHtml": null,
+        /** Enabled when recommended: true */
+        "noDangerouslySetInnerHtmlWithChildren": null,
+        /** Enabled when recommended: true */
+        "noGlobalEval": null,
+        /** @default "off" */
+        "noSecrets": null
+      },
+      "style": {
+        /** @default true - Enable recommended style rules */
+        "recommended": true,
+        /** @default "off" */
+        "noCommonJs": null,
+        /** @default "off" */
+        "noDefaultExport": "error",
+        /** @default "off" */
+        "noDescendingSpecificity": null,
+        /** @default "off" */
+        "noDoneCallback": null,
+        /** @default "off" */
+        "noEnum": null,
+        /** @default "off" */
+        "noExportedImports": null,
+        /** @default "off" */
+        "noHeadElement": null,
+        /** @default "off" */
+        "noImplicitBoolean": null,
+        /** Enabled when recommended: true */
+        "noInferrableTypes": null,
+        /** @default "off" */
+        "noJsxLiterals": null,
+        /** @default "off" */
+        "noMagicNumbers": null,
+        /** @default "off" */
+        "noNamespace": null,
+        /** @default "off" */
+        "noNegationElse": null,
+        /** @default "off" */
+        "noNestedTernary": null,
+        /** Enabled when recommended: true */
+        "noNonNullAssertion": null,
+        /** @default "off" */
+        "noParameterAssign": "warn",
+        /** @default "off" */
+        "noParameterProperties": null,
+        /** @default "off" */
+        "noProcessEnv": null,
+        /** @default "off" */
+        "noRestrictedGlobals": null,
+        /** @default "off" */
+        "noRestrictedImports": null,
+        /** @default "off" */
+        "noRestrictedTypes": null,
+        /** @default "off" */
+        "noShoutyConstants": null,
+        /** @default "off" */
+        "noSubstr": null,
+        /** Enabled when recommended: true */
+        "noUnusedTemplateLiteral": null,
+        /** Enabled when recommended: true */
+        "noUselessElse": null,
+        /** @default "off" */
+        "noValueAtRule": null,
+        /** @default "off" */
+        "noYodaExpression": null,
+        /** @default "off" */
+        "useArrayLiterals": null,
+        /** Enabled when recommended: true */
+        "useAsConstAssertion": null,
+        /** @default "off" */
+        "useAtIndex": null,
+        /** Enabled when recommended: true */
+        "useBlockStatements": null,
+        /** Enabled when recommended: true */
+        "useCollapsedElseIf": null,
+        /** @default "off" */
+        "useCollapsedIf": null,
+        /** @default "off" */
+        "useComponentExportOnlyModules": null,
+        /** Enabled when recommended: true */
+        "useConsistentArrayType": null,
+        /** @default "off" */
+        "useConsistentArrowReturn": null,
+        /** Enabled when recommended: true */
+        "useConsistentBuiltinInstantiation": null,
+        /** @default "off" */
+        "useConsistentCurlyBraces": null,
+        /** @default "off" */
+        "useConsistentMemberAccessibility": null,
+        /** @default "off" */
+        "useConsistentObjectDefinitions": null,
+        /** @default "off" */
+        "useConsistentTypeDefinitions": null,
+        /** Enabled when recommended: true */
+        "useConst": null,
+        /** Enabled when recommended: true */
+        "useDefaultParameterLast": null,
+        /** @default "off" */
+        "useDefaultSwitchClause": null,
+        /** @default "off" */
+        "useDeprecatedReason": null,
+        /** Enabled when recommended: true */
+        "useEnumInitializers": null,
+        /** @default "off" */
+        "useExplicitLengthCheck": null,
+        /** Enabled when recommended: true */
+        "useExponentiationOperator": null,
+        /** @default "off" */
+        "useExportType": null,
+        /** @default "off" */
+        "useExportsLast": null,
+        /** @default "off" */
+        "useFilenamingConvention": null,
+        /** @default "off" */
+        "useForOf": null,
+        /** Enabled when recommended: true */
+        "useFragmentSyntax": null,
+        /** @default "off" */
+        "useGraphqlNamingConvention": null,
+        /** @default "off" */
+        "useGroupedAccessorPairs": null,
+        /** @default "off" */
+        "useImportType": null,
+        /** Enabled when recommended: true */
+        "useLiteralEnumMembers": null,
+        /** @default "off" */
+        "useNamingConvention": null,
+        /** @default "off" */
+        "useNodeAssertStrict": null,
+        /** @default "off" */
+        "useNodejsImportProtocol": null,
+        /** Enabled when recommended: true */
+        "useNumberNamespace": null,
+        /** @default "off" */
+        "useNumericSeparators": null,
+        /** @default "off" */
+        "useObjectSpread": null,
+        /** @default "off" */
+        "useReactFunctionComponents": null,
+        /** @default "off" */
+        "useReadonlyClassProperties": null,
+        /** Enabled when recommended: true */
+        "useSelfClosingElements": null,
+        /** Enabled when recommended: true */
+        "useShorthandAssign": null,
+        /** Enabled when recommended: true */
+        "useShorthandFunctionType": null,
+        /** @default "off" - Disallow multiple variable declarations in the same statement */
+        "useSingleVarDeclarator": null,
+        /** @default "off" */
+        "useSymbolDescription": null,
+        /** Enabled when recommended: true */
+        "useTemplate": null,
+        /** @default "off" */
+        "useThrowNewError": null,
+        /** Enabled when recommended: true */
+        "useThrowOnlyError": null,
+        /** @default "off" */
+        "useTrimStartEnd": null,
+        /** @default "off" */
+        "useUnifiedTypeSignatures": null
+      },
+      "suspicious": {
+        /** @default true - Enable recommended suspicious rules */
+        "recommended": true,
+        /** @default "off" */
+        "noAlert": null,
+        /** Enabled when recommended: true */
+        "noApproximativeNumericConstant": null,
+        /** Enabled when recommended: true */
+        // "noArrayIndexKey": "error",
+        "noArrayIndexKey": "off",
+        /** Enabled when recommended: true */
+        "noAssignInExpressions": null,
+        /** Enabled when recommended: true */
+        "noAsyncPromiseExecutor": null,
+        /** @default "off" */
+        "noBiomeFirstException": null,
+        /** @default "off" */
+        "noBitwiseOperators": null,
+        /** Enabled when recommended: true */
+        "noCatchAssign": null,
+        /** Enabled when recommended: true */
+        "noClassAssign": null,
+        /** Enabled when recommended: true */
+        "noCommentText": null,
+        /** Enabled when recommended: true */
+        "noCompareNegZero": null,
+        /** Enabled when recommended: true */
+        "noConfusingLabels": null,
+        /** Enabled when recommended: true */
+        "noConfusingVoidType": null,
+        /** @default "off" */
+        "noConsole": null,
+        /** @default "off" */
+        "noConstEnum": null,
+        /** @default "off" */
+        "noConstantBinaryExpressions": null,
+        /** Enabled when recommended: true */
+        "noControlCharactersInRegex": null,
+        /** Enabled when recommended: true */
+        "noDebugger": null,
+        /** @default "off" */
+        "noDeprecatedImports": null,
+        /** @default "off" */
+        "noDocumentCookie": null,
+        /** @default "off" */
+        "noDocumentImportInPage": null,
+        /** Enabled when recommended: true */
+        "noDoubleEquals": null,
+        /** Enabled when recommended: true */
+        "noDuplicateAtImportRules": null,
+        /** Enabled when recommended: true */
+        "noDuplicateCase": null,
+        /** Enabled when recommended: true */
+        "noDuplicateClassMembers": null,
+        /** @default "off" */
+        "noDuplicateDependencies": null,
+        /** Enabled when recommended: true */
+        "noDuplicateCustomProperties": null,
+        /** Enabled when recommended: true */
+        "noDuplicateElseIf": null,
+        /** Enabled when recommended: true */
+        "noDuplicateFields": null,
+        /** Enabled when recommended: true */
+        "noDuplicateFontNames": null,
+        /** Enabled when recommended: true */
+        "noDuplicateJsxProps": null,
+        /** Enabled when recommended: true */
+        "noDuplicateObjectKeys": null,
+        /** Enabled when recommended: true */
+        "noDuplicateParameters": null,
+        /** Enabled when recommended: true */
+        "noDuplicateProperties": null,
+        /** Enabled when recommended: true */
+        "noDuplicateSelectorsKeyframeBlock": null,
+        /** Enabled when recommended: true */
+        "noDuplicateTestHooks": null,
+        /** @default "off" */
+        "noEmptyBlock": null,
+        /** Enabled when recommended: true */
+        "noEmptyBlockStatements": null,
+        /** @default "off" */
+        "noEmptySource": null,
+        /** Enabled when recommended: true */
+        "noEmptyInterface": null,
+        /** @default "off" */
+        "noEvolvingTypes": null,
+        /** Enabled when recommended: true */
+        "noExplicitAny": null,
+        /** Enabled when recommended: true */
+        "noExportsInTest": null,
+        /** Enabled when recommended: true */
+        "noExtraNonNullAssertion": null,
+        /** Enabled when recommended: true */
+        "noFallthroughSwitchClause": null,
+        /** Enabled when recommended: true */
+        "noFocusedTests": null,
+        /** Enabled when recommended: true */
+        "noFunctionAssign": null,
+        /** Enabled when recommended: true */
+        "noGlobalAssign": null,
+        /** Enabled when recommended: true */
+        "noGlobalIsFinite": null,
+        /** Enabled when recommended: true */
+        "noGlobalIsNan": null,
+        /** @default "off" */
+        "noHeadImportInDocument": null,
+        /** Enabled when recommended: true */
+        "noImplicitAnyLet": null,
+        /** Enabled when recommended: true */
+        "noImportAssign": null,
+        /** @default "off" */
+        "noImportCycles": null,
+        /** Enabled when recommended: true */
+        "noImportantInKeyframe": null,
+        /** @default "off" */
+        "noIrregularWhitespace": null,
+        /** Enabled when recommended: true */
+        "noLabelVar": null,
+        /** Enabled when recommended: true */
+        "noMisleadingCharacterClass": null,
+        /** Enabled when recommended: true */
+        "noMisleadingInstantiator": null,
+        /** Enabled when recommended: true */
+        "noMisplacedAssertion": null,
+        /** Enabled when recommended: true */
+        "noMisrefactoredShorthandAssign": null,
+        /** @default "off" */
+        "noNonNullAssertedOptionalChain": null,
+        /** @default "off" */
+        "noOctalEscape": null,
+        /** Enabled when recommended: true */
+        "noPrototypeBuiltins": null,
+        /** @default "off" */
+        "noQuickfixBiome": null,
+        /** @default "off" */
+        "noReactForwardRef": null,
+        /** Enabled when recommended: true */
+        "noReactSpecificProps": null,
+        /** Enabled when recommended: true */
+        "noRedeclare": null,
+        /** Enabled when recommended: true */
+        "noRedundantUseStrict": null,
+        /** Enabled when recommended: true */
+        "noSelfCompare": null,
+        /** Enabled when recommended: true */
+        "noShadowRestrictedNames": null,
+        /** Enabled when recommended: true */
+        "noShorthandPropertyOverrides": null,
+        /** Enabled when recommended: true */
+        "noSkippedTests": null,
+        /** Enabled when recommended: true */
+        "noSparseArray": null,
+        /** Enabled when recommended: true */
+        "noSuspiciousSemicolonInJsx": null,
+        /** @default "off" */
+        "noTemplateCurlyInString": null,
+        /** Enabled when recommended: true */
+        "noThenProperty": null,
+        /** @default "off" */
+        "noTsIgnore": null,
+        /** @default "off" */
+        "noUnassignedVariables": null,
+        /** @default "off" */
+        "noUnknownAtRules": null,
+        /** @default "off" */
+        "noUnusedExpressions": null,
+        /** Enabled when recommended: true */
+        "noUnsafeDeclarationMerging": null,
+        /** Enabled when recommended: true */
+        "noUnsafeNegation": null,
+        /** @default "off" */
+        "noUselessEscapeInString": null,
+        /** @default "off" */
+        "noUselessRegexBackrefs": null,
+        /** Enabled when recommended: true */
+        "noVar": "error",
+        /** Enabled when recommended: true */
+        "noWith": null,
+        /** @default "off" */
+        "useAdjacentOverloadSignatures": null,
+        /** Enabled when recommended: true */
+        "useAwait": null,
+        /** @default "off" */
+        "useBiomeIgnoreFolder": null,
+        /** Enabled when recommended: true */
+        "useDefaultSwitchClauseLast": null,
+        /** @default "off" */
+        "useDeprecatedDate": "info",
+        /** @default "off" */
+        "useErrorMessage": null,
+        /** Enabled when recommended: true */
+        "useGetterReturn": null,
+        /** @default "off" */
+        "useGoogleFontDisplay": null,
+        /** @default "off" */
+        "useGuardForIn": null,
+        /** Enabled when recommended: true */
+        "useIsArray": null,
+        /** @default "off" */
+        "useIterableCallbackReturn": null,
+        /** Enabled when recommended: true */
+        "useNamespaceKeyword": null,
+        /** Enabled when recommended: true */
+        "useNumberToFixedDigitsArgument": null,
+        /** @default "off" */
+        "useStaticResponseMethods": null,
+        /** @default "off" */
+        "useStrictMode": null
+      },
+      "nursery": {
+        /** @default false - Nursery rules are experimental and not recommended by default */
+        "recommended": false,
+        /** @default "off" */
+        "noAmbiguousAnchorText": null,
+        /** @default "off" */
+        "noBeforeInteractiveScriptOutsideDocument": null,
+        /** @default "off" */
+        "noContinue": null,
+        /** @default "off" */
+        "noDeprecatedMediaType": null,
+        /** @default "off" */
+        "noDivRegex": null,
+        /** @default "off" */
+        "noDuplicateArgumentNames": null,
+        /** @default "off" */
+        "noDuplicateAttributes": null,
+        /** @default "off" */
+        "noDuplicateEnumValueNames": null,
+        /** @default "off" */
+        "noDuplicateEnumValues": null,
+        /** @default "off" */
+        "noDuplicateFieldDefinitionNames": null,
+        /** @default "off" */
+        "noDuplicateGraphqlOperationName": null,
+        /** @default "off" */
+        "noDuplicateInputFieldNames": null,
+        /** @default "off" */
+        "noDuplicateVariableNames": null,
+        /** @default "off" */
+        "noDuplicatedSpreadProps": null,
+        /** @default "off" */
+        "noEqualsToNull": null,
+        /** @default "off" */
+        "noExcessiveClassesPerFile": null,
+        /** @default "off" */
+        "noExcessiveLinesPerFile": null,
+        /** @default "off" */
+        "noFloatingClasses": null,
+        /** @default "off" */
+        "noFloatingPromises": null,
+        /** @default "off" */
+        "noForIn": null,
+        /** @default "off" */
+        "noHexColors": null,
+        /** @default "off" */
+        "noIncrementDecrement": null,
+        /** @default "off" */
+        "noJsxPropsBind": null,
+        /** @default "off" */
+        "noLeakedRender": null,
+        /** @default "off" */
+        "noMisusedPromises": null,
+        /** @default "off" */
+        "noMultiAssign": null,
+        /** @default "off" */
+        "noMultiStr": null,
+        /** @default "off" */
+        "noNestedPromises": null,
+        /** @default "off" */
+        "noParametersOnlyUsedInRecursion": null,
+        /** @default "off" */
+        "noProto": null,
+        /** @default "off" */
+        "noRedundantDefaultExport": null,
+        /** @default "off" */
+        "noReturnAssign": null,
+        /** @default "off" */
+        "noRootType": null,
+        /** @default "off" */
+        "noScriptUrl": null,
+        /** @default "off" */
+        "noShadow": null,
+        /** @default "off" */
+        "noSyncScripts": null,
+        /** @default "off" */
+        "noTernary": null,
+        /** @default "off" */
+        "noUndeclaredEnvVars": null,
+        /** @default "off" */
+        "noUnknownAttribute": null,
+        /** @default "off" */
+        "noUnnecessaryConditions": null,
+        /** @default "off" */
+        "noUselessReturn": null,
+        /** @default "off" */
+        "noVueArrowFuncInWatch": null,
+        /** @default "off" */
+        "noVueOptionsApi": null,
+        /** @default "off" */
+        "noVueVIfWithVFor": null,
+        /** @default "off" */
+        "useArraySortCompare": null,
+        /** @default "off" */
+        "useAwaitThenable": null,
+        /** @default "off" */
+        "useConsistentEnumValueType": null,
+        /** @default "off" */
+        "useConsistentGraphqlDescriptions": null,
+        /** @default "off" */
+        "useConsistentMethodSignatures": null,
+        /** @default "off" */
+        "useDestructuring": null,
+        /** @default "off" */
+        "useErrorCause": null,
+        /** @default "off" */
+        "useExhaustiveSwitchCases": null,
+        /** @default "off" */
+        "useExplicitType": null,
+        /** @default "off" */
+        "useFind": null,
+        /** @default "off" */
+        "useGlobalThis": null,
+        /** @default "off" */
+        "useInlineScriptId": null,
+        /** @default "off" */
+        "useInputName": null,
+        /** @default "off" */
+        "useLoneAnonymousOperation": null,
+        /** @default "off" */
+        "useLoneExecutableDefinition": null,
+        /** @default "off" */
+        "useRegexpExec": null,
+        /** @default "off" */
+        "useRequiredScripts": null,
+        /** @default "off" */
+        // "useSortedClasses": null,
+        "useSortedClasses": {
+          "level": "warn",
+          "fix": "unsafe", // TODO: change to `safe` after we confident with the current result.
+          "options": {
+            "functions": ["cns"]
+          }
+        },
+        /** @default "off" */
+        "useSpread": null,
+        /** @default "off" */
+        "useVueConsistentDefinePropsDeclaration": null,
+        /** @default "off" */
+        "useVueConsistentVBindStyle": null,
+        /** @default "off" */
+        "useVueConsistentVOnStyle": null,
+        /** @default "off" */
+        "useVueDefineMacrosOrder": null,
+        /** @default "off" */
+        "useVueHyphenatedAttributes": null,
+        /** @default "off" */
+        "useVueMultiWordComponentNames": null,
+        /** @default "off" */
+        "useVueVForKey": null,
+        /** @default "off" */
+        "useVueValidTemplateRoot": null,
+        /** @default "off" */
+        "useVueValidVBind": null,
+        /** @default "off" */
+        "useVueValidVCloak": null,
+        /** @default "off" */
+        "useVueValidVElse": null,
+        /** @default "off" */
+        "useVueValidVElseIf": null,
+        /** @default "off" */
+        "useVueValidVHtml": null,
+        /** @default "off" */
+        "useVueValidVIf": null,
+        /** @default "off" */
+        "useVueValidVOn": null,
+        /** @default "off" */
+        "useVueValidVOnce": null,
+        /** @default "off" */
+        "useVueValidVPre": null,
+        /** @default "off" */
+        "useVueValidVText": null,
+        /** @default "off" */
+        "useVueVapor": null
+      }
+    }
+  },
+  "assist": {
+    /** @default true - Enable code assist actions */
+    "enabled": true,
+    /** @default null - Files to assist (null = all) */
+    "includes": null,
+    "actions": {
+      /** @default true - Enable recommended assist actions */
+      "recommended": true,
+      "source": {
+        /** @default true - Enable recommended source actions */
+        "recommended": true,
+        "organizeImports": {
+          /** @default "on" - Enable organize imports action */
+          "level": "on",
+          "options": {
+            /** @default [":URL:", ":NODE:", ":BUILTIN:", ":THIRD_PARTY:", ":LOCAL:"] */
+            "groups": [
+              "react",
+              "next",
+              "next/*",
+              ":BLANK_LINE:",
+              ":PACKAGE:",
+              ":BLANK_LINE:",
+              ":ALIAS:",
+              ":BLANK_LINE:",
+              ":PATH:"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "javascript": {
+    "parser": {
+      /** @default false - Enable unsafe parameter decorators */
+      "unsafeParameterDecoratorsEnabled": false,
+      /** @default false - Allow JSX syntax everywhere */
+      "jsxEverywhere": true,
+      /** @default null - GritQL metavariables */
+      "gritMetavariables": null
+    },
+    "formatter": {
+      /** @default true - Enable JavaScript formatter */
+      "enabled": true,
+      /** @default "tab" - Indentation style */
+      "indentStyle": "space",
+      /** @default 2 - Indentation width */
+      "indentWidth": 2,
+      /** @default "lf" - Line ending */
+      "lineEnding": "lf",
+      /** @default 80 - Line width */
+      "lineWidth": 80,
+      /** @default "double" - Quote style for strings */
+      "quoteStyle": "single",
+      /** @default "double" - Quote style for JSX attributes */
+      "jsxQuoteStyle": "double",
+      /** @default "asNeeded" - Quote object properties: "asNeeded", "preserve" */
+      "quoteProperties": "asNeeded",
+      /** @default "all" - Trailing commas: "all", "es5", "none" */
+      "trailingCommas": "all",
+      /** @default "always" - Semicolons: "always", "asNeeded" */
+      "semicolons": "asNeeded",
+      /** @default "always" - Arrow function parentheses: "always", "asNeeded" */
+      "arrowParentheses": "asNeeded",
+      /** @default false - Put closing bracket on same line */
+      "bracketSameLine": false,
+      /** @default true - Print spaces between brackets */
+      "bracketSpacing": true,
+      /** @default "auto" - Attribute position */
+      "attributePosition": "auto",
+      /** @default "auto" - Expand short syntax */
+      "expand": "auto",
+      /** @default "after" - Operator line break: "after", "before", "none" */
+      "operatorLinebreak": "after"
+    },
+    /** @default [] - Global variables */
+    "globals": [],
+    /** @default "transparent" - JSX runtime: "transparent", "reactClassic" */
+    "jsxRuntime": "transparent",
+    "linter": {
+      /** @default true - Enable JavaScript linter */
+      "enabled": true
+    },
+    "assist": {
+      /** @default true - Enable JavaScript assist */
+      "enabled": true
+    }
+  },
+  "json": {
+    "parser": {
+      /** @default false - Allow comments in JSON files */
+      "allowComments": false,
+      /** @default false - Allow trailing commas in JSON files */
+      "allowTrailingCommas": true
+    },
+    "formatter": {
+      /** @default true - Enable JSON formatter */
+      "enabled": true,
+      /** @default "tab" - Indentation style */
+      "indentStyle": "space",
+      /** @default 2 - Indentation width */
+      "indentWidth": 2,
+      /** @default "lf" - Line ending */
+      "lineEnding": "lf",
+      /** @default 80 - Line width */
+      "lineWidth": 80,
+      /** @default "none" - Trailing commas: "all", "none" */
+      "trailingCommas": "none",
+      /** @default null - Bracket spacing (inherits from top-level) */
+      "bracketSpacing": null,
+      /** @default null - Expand (inherits from top-level) */
+      "expand": null
+    },
+    "linter": {
+      /** @default true - Enable JSON linter */
+      "enabled": true
+    },
+    "assist": {
+      /** @default true - Enable JSON assist */
+      "enabled": true
+    }
+  },
+  "css": {
+    "parser": {
+      /** @default false - Enable CSS Modules parsing */
+      "cssModules": false,
+      /** @default null - Allow wrong line comments */
+      "allowWrongLineComments": null,
+      /** @default false - Enable Tailwind CSS directives */
+      "tailwindDirectives": true
+    },
+    "formatter": {
+      /** @default true - Enable CSS formatter */
+      "enabled": true,
+      /** @default "tab" - Indentation style */
+      "indentStyle": "space",
+      /** @default 2 - Indentation width */
+      "indentWidth": 2,
+      /** @default "lf" - Line ending */
+      "lineEnding": "lf",
+      /** @default 80 - Line width */
+      "lineWidth": 80,
+      /** @default "double" - Quote style */
+      "quoteStyle": "double"
+    },
+    "linter": {
+      /** @default true - Enable CSS linter */
+      "enabled": true
+    },
+    "assist": {
+      /** @default true - Enable CSS assist */
+      "enabled": true
+    },
+    /** @default [] - CSS global variables */
+    "globals": []
+  },
+  "html": {
+    "parser": {
+      /** @default null - Interpolation syntax */
+      "interpolation": null
+    },
+    "formatter": {
+      /** @default true - Enable HTML formatter */
+      "enabled": true,
+      /** @default "tab" - Indentation style */
+      "indentStyle": "space",
+      /** @default 2 - Indentation width */
+      "indentWidth": 2,
+      /** @default "lf" - Line ending */
+      "lineEnding": "lf",
+      /** @default 80 - Line width */
+      "lineWidth": 80,
+      /** @default false - Indent <script> and <style> contents */
+      "indentScriptAndStyle": false,
+      /** @default "always" - Self-close void elements: "always", "never" */
+      "selfCloseVoidElements": "always",
+      /** @default null - Attribute position (inherits from top-level) */
+      "attributePosition": null,
+      /** @default null - Bracket same line (inherits from top-level) */
+      "bracketSameLine": null,
+      /** @default null - Whitespace sensitivity: "css", "strict", "ignore" */
+      "whitespaceSensitivity": null
+    },
+    "linter": {
+      /** @default true - Enable HTML linter */
+      "enabled": true
+    },
+    "assist": {
+      /** @default true - Enable HTML assist */
+      "enabled": true
+    },
+    /** @default false - Enable experimental full HTML support */
+    "experimentalFullSupportEnabled": false
+  },
+  /** @default null - Configuration overrides for specific files/patterns */
+  "overrides": [
+    {
+      "includes": ["apps/browser-extension/**"],
+      "javascript": {
+        "globals": ["defineBackground", "defineContentScript", "browser"]
+      }
+    }
+  ],
+  /** @default null - List of plugins to load */
+  "plugins": null
+}
