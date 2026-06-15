@@ -6,9 +6,11 @@
     "watchPatterns": [
       "/apps/console/**",
       "/apps/console/Dockerfile",
+
       "/packages/env/**",
       "/packages/ui/**",
       "/packages/config/**",
+
       "/infra/railway/console.json",
       "/package.json",
       "/bun.lock",

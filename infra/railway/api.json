@@ -6,11 +6,13 @@
     "watchPatterns": [
       "/apps/api/**",
       "/apps/api/Dockerfile",
+
       "/packages/auth/**",
       "/packages/db/**",
       "/packages/env/**",
       "/packages/ui/**",
       "/packages/config/**",
+
       "/infra/railway/api.json",
       "/package.json",
       "/bun.lock",

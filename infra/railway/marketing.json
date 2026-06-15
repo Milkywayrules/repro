@@ -7,8 +7,11 @@
       "/apps/marketing/**",
       "/apps/marketing/Dockerfile",
       "/apps/marketing/nginx.conf",
+
       "/packages/env/**",
+      "/packages/ui/**",
       "/packages/config/**",
+
       "/infra/railway/marketing.json",
       "/package.json",
       "/bun.lock",

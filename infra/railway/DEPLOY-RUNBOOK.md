@@ -53,7 +53,7 @@ Set once per **service × environment**. Same JSON path for both environments; t
 | Setting | Staging | Production |
 | ------- | ------- | ---------- |
 | **Config file path** | `/infra/railway/{service}.json` | same |
-| **Root Directory** | `/` | `/` |
+| **Root Directory** | **empty** (full repo) | **empty** (full repo) |
 | **GitHub repo + branch** | connected, `main` | connected, `main` |
 | **Auto deploy** | **On** | **Off** |
 | **Wait for CI** | **On** | **On** |
@@ -98,19 +98,21 @@ Do these in sequence — skipping steps causes failed health checks or auth brea
 
 ## Railway UI checklist
 
-One Railway project; **Root Directory = `/`** (repo root) for every service. Do not set Root Directory to `apps/<app>` — Dockerfiles copy the monorepo at root.
+One Railway project. **Root Directory must be empty** on every service (delete any value). Railway then uses the **full git checkout** as the Docker build context. Do **not** set Root Directory to `apps/<app>` — that setting limits the upload to one app folder and breaks monorepo `COPY` steps.
 
-| Service   | Config file path (Settings)   | Pre-deploy / health / port notes |
-| --------- | ----------------------------- | -------------------------------- |
-| **api**   | `/infra/railway/api.json`     | Pre-deploy: `./migrate` (compiled binary, `MIGRATIONS_DIR=/app/migrations`). Health: **`/ready`** (120s) — Postgres readiness, not `/health`. |
-| **console** | `/infra/railway/console.json` | Health: `/` (180s). Build uses committed `.env.staging` / `.env.production`. |
-| **marketing** | `/infra/railway/marketing.json` | Health: `/` (60s). nginx listens on Railway's injected `$PORT` — no manual target-port step. |
-| **docs**  | `/infra/railway/docs.json`    | Health: `/` (180s). Staging build: auto-detected from `RAILWAY_ENVIRONMENT_NAME` (`BUILD_MODE` optional override). |
+`dockerfilePath` in each JSON config (e.g. `apps/api/Dockerfile`) is **not** the Root Directory. The Dockerfile path only selects which file to run; the build context is always controlled by Root Directory.
+
+| Service   | Config file path (Settings)   | `dockerfilePath` (in JSON) | Pre-deploy / health / port notes |
+| --------- | ----------------------------- | -------------------------- | -------------------------------- |
+| **api**   | `/infra/railway/api.json`     | `apps/api/Dockerfile`      | Pre-deploy: `./migrate` (compiled binary, `MIGRATIONS_DIR=/app/migrations`). Health: **`/ready`** (120s) — Postgres readiness, not `/health`. |
+| **console** | `/infra/railway/console.json` | `apps/console/Dockerfile`  | Health: `/` (180s). Build uses committed `.env.staging` / `.env.production`. |
+| **marketing** | `/infra/railway/marketing.json` | `apps/marketing/Dockerfile` | Health: `/` (60s). nginx listens on Railway's injected `$PORT` — no manual target-port step. |
+| **docs**  | `/infra/railway/docs.json`    | `apps/docs/Dockerfile`     | Health: `/` (180s). Staging build: auto-detected from `RAILWAY_ENVIRONMENT_NAME` (`BUILD_MODE` optional override). |
 
 **Per service (all four):**
 
 - [ ] Config file path set to the JSON config above
-- [ ] Root Directory = `/`
+- [ ] **Root Directory field cleared** (empty — not `apps/api`, not `apps/console`, not `/frontend`-style paths)
 - [ ] GitHub repo connected; branch `main`
 - [ ] **Staging environment:** Auto deploy **On**, Wait for CI **On**
 - [ ] **Production environment:** Auto deploy **Off**, Wait for CI **On** (manual Deploy after staging smoke)
@@ -126,6 +128,30 @@ One Railway project; **Root Directory = `/`** (repo root) for every service. Do 
 **Marketing only:**
 
 - [ ] No manual target port needed — nginx listens on Railway `$PORT`
+
+---
+
+## Build failures — wrong Root Directory
+
+These Dockerfiles are **shared monorepo** builds: they `COPY` root `bun.lock`, `packages/*`, and `apps/*` paths. Railway must receive the **whole repository** as build context.
+
+If Root Directory is set to an app subdirectory (common after JS monorepo auto-import, or because the Dockerfile lives under `apps/<app>/`), builds fail at the first `COPY` that references a path outside that folder:
+
+| Build log error | Root Directory was probably | Fix |
+| ------------- | ------------------------- | --- |
+| `"/bun.lock": not found` on `COPY package.json bun.lock turbo.json` | `apps/api` | Clear Root Directory on **api** |
+| `"/apps/console/package.json": not found` | `apps/console` | Clear Root Directory on **console** |
+| `"/packages/db/package.json": not found` | `apps/console` or other subdir | Clear Root Directory on that service |
+| `"/packages/ui/package.json": not found` | `apps/api` or other subdir | Clear Root Directory on that service |
+
+After clearing Root Directory on **each** service (api, console, marketing, docs), redeploy. Local equivalent:
+
+```bash
+docker build -f apps/api/Dockerfile -t repro-api .
+docker build -f apps/console/Dockerfile -t repro-console .
+```
+
+Run from the **repo root** (`.` is the build context). `bun.lock` and all `package.json` paths are committed — the files are not missing from git.
 
 **Console / docs / marketing — staging build:**
 

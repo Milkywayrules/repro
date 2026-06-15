@@ -6,8 +6,11 @@
     "watchPatterns": [
       "/apps/docs/**",
       "/apps/docs/Dockerfile",
+
       "/packages/env/**",
+      "/packages/ui/**",
       "/packages/config/**",
+
       "/infra/railway/docs.json",
       "/package.json",
       "/bun.lock",
@@ -15,6 +18,7 @@
     ]
   },
   "deploy": {
+    "startCommand": "bun run start",
     "healthcheckPath": "/",
     "healthcheckTimeout": 180,
     "restartPolicyType": "ON_FAILURE",

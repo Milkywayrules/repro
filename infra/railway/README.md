@@ -20,7 +20,9 @@ Each service uses a dedicated JSON file (absolute path from repo root). Set **Se
 | marketing | `/infra/railway/marketing.json` |
 | docs      | `/infra/railway/docs.json`    |
 
-**Root Directory:** `/` (repo root) for all four services. Dockerfiles run `COPY . .` and `bun install --frozen-lockfile` at monorepo root — do not set Root Directory to `apps/<app>`.
+**Root Directory:** leave **empty** on every service (full repo as Docker build context). Do **not** set it to `apps/<app>` because the Dockerfile lives there — `dockerfilePath` in JSON already points at `apps/<app>/Dockerfile`. Subdirectory root dirs break `COPY bun.lock`, `COPY packages/...`, and `COPY apps/...` (see [runbook troubleshooting](./DEPLOY-RUNBOOK.md#build-failures--wrong-root-directory)).
+)).
+).
 
 Watch paths are explicit per service in each JSON config (no `/packages/**` glob). Changes under `packages/env/**` intentionally redeploy all four services.
 
