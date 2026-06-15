@@ -92,34 +92,15 @@ Docs: [Doppler Railway integration](https://docs.doppler.com/docs/railway)
 
 ## Migrations
 
-**Primary:** Railway api **pre-deploy** (`bun run db:migrate` in `infra/railway/api.toml`) — runs in Railway's network with internal `DATABASE_URL`.
+**Cloud:** Railway api **pre-deploy** (`./migrate` in `infra/railway/api.json`) — compiled binary in the api image; internal `DATABASE_URL` from Doppler Sync.
 
-**Optional escape hatch:** GitHub Actions [`.github/workflows/deploy.yml`](../../.github/workflows/deploy.yml) — manual `workflow_dispatch` migrate using GitHub Environment `DATABASE_URL` (public/proxy URL — see Pattern B). Not the default path; keep for emergencies or debugging migrations outside a deploy.
+**Local:** `bun run db:migrate` from repo root (or `bun run db:migrate` in `packages/db`).
 
 ---
 
 ## GitHub Actions / CI secrets
 
-**This repo uses Doppler → GitHub Environment secrets sync** for the optional migrate escape hatch. Railway runtime still uses Doppler → Railway Sync only.
-
-### Pattern B — Doppler → GitHub Secrets sync (recommended)
-
-[`.github/workflows/deploy.yml`](../../.github/workflows/deploy.yml) reads `DATABASE_URL` directly from GitHub Environment secrets — no `doppler run`, no `DOPPLER_TOKEN`.
-
-1. Doppler → **Integrations** → **GitHub** → **Actions** (or Environment secrets sync).
-2. Map configs to GitHub Environments:
-   - Doppler `api/stg` → GitHub Environment **`staging`**
-   - Doppler `api/prd` → GitHub Environment **`production`**
-3. **`DATABASE_URL` in GitHub ≠ `DATABASE_URL` in Doppler for Railway.** Doppler `stg` / `prd` store the Railway **internal** URL (api runtime + pre-deploy migrate). GitHub Environment `DATABASE_URL` must be a **public** or proxy URL reachable from GitHub Actions runners — see [railway/DEPLOY-RUNBOOK.md](../railway/DEPLOY-RUNBOOK.md#internal-database_url-in-doppler). Pick one:
-   - **Manual override (simplest):** sync other keys from Doppler → GitHub; set `DATABASE_URL` manually in GitHub Environment `staging` / `production` to the public/proxy URL.
-   - **Second Doppler key:** add e.g. `DATABASE_URL_GHA` (public/proxy) in Doppler; map that key to GitHub `DATABASE_URL` while Railway Sync keeps internal `DATABASE_URL` for the api service.
-4. Railway runtime always uses the **internal** `DATABASE_URL` via Doppler → Railway Sync — do not rely on GitHub secrets for api containers.
-
-**Auto-redeploy on Sync:** OFF for Railway (deploy timing via Git merge). Re-sync secrets when Doppler values change; redeploy api manually if needed.
-
-### Pattern A — service token + `doppler run` (legacy)
-
-Not used by the current workflow. If you switch back: GitHub Environment `DOPPLER_TOKEN` per env + `dopplerhq/cli-action` in deploy.yml. Do **not** duplicate `DATABASE_URL` in GitHub when using Pattern A.
+Railway runtime uses **Doppler → Railway Sync only**. No Doppler → GitHub sync required for migrations.
 
 ### Repo secrets (workflow plumbing)
 
@@ -128,7 +109,7 @@ Keep CI-only tokens as **repo** secrets (not in Doppler):
 - `COOLIFY_WEBHOOK` — Coolify path
 - `TURBO_TOKEN` — remote cache (optional)
 
-App redeploy is **Railway GitHub auto-deploy** — no `RAILWAY_TOKEN` in deploy workflow.
+App redeploy is **Railway GitHub integration** (staging auto on `main`; production manual). Build/deploy settings: `infra/railway/*.json`.
 
 ---
 
@@ -137,7 +118,6 @@ App redeploy is **Railway GitHub auto-deploy** — no `RAILWAY_TOKEN` in deploy 
 | Store | Holds |
 | ----- | ----- |
 | **Doppler `api`** | All api runtime vars for stg/prd (+ dev mirror); no `PORT` in stg/prd |
-| **GitHub Environment `DATABASE_URL`** | Optional GHA migrate escape hatch (`staging` / `production`) — **public/proxy** URL, not the internal Doppler value |
 | **GitHub repo secrets** | `COOLIFY_WEBHOOK`, `TURBO_TOKEN` — workflow plumbing, not app runtime |
 | **`apps/api/.env`** | Local secrets + switches (gitignored) |
 | **Console `.env.production`** | Build-time switches (committed, no secrets) |
@@ -156,16 +136,13 @@ App redeploy is **Railway GitHub auto-deploy** — no `RAILWAY_TOKEN` in deploy 
 
 **GitHub**
 
-- [ ] Push repo; connect Railway auto-deploy on merge
-- [ ] Environments **`staging`** / **`production`**
-- [ ] Doppler → GitHub sync: `api/stg` → `staging`, `api/prd` → `production` (public/proxy `DATABASE_URL` for escape hatch — see Pattern B)
-- [ ] Optional: smoke **Migrate (escape hatch)** workflow
+- [ ] Push repo; Railway per service — staging Auto deploy **On**, production **Off**, Wait for CI **On**, branch `main`, config paths in `infra/railway/`
 
 **Railway** (first deploy after Doppler Sync)
 
 - [ ] Four services — full UI checklist in [railway/DEPLOY-RUNBOOK.md](../railway/DEPLOY-RUNBOOK.md)
-- [ ] Config paths `/infra/railway/*.toml`; Root Directory `/`
-- [ ] Api pre-deploy migrate via `api.toml`; health `/ready`
+- [ ] Config paths `/infra/railway/*.json`; Root Directory `/`
+- [ ] Api pre-deploy migrate via `api.json`; health `/ready`
 - [ ] Marketing networking target port **80**
 - [ ] Doppler Sync auto-redeploy **OFF**
 - [ ] Smoke `GET https://stg-api.<cloud-base>/ready`

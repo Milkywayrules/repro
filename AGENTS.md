@@ -44,7 +44,8 @@ Monorepo agent instructions for this Better-T-Stack project. Pair with Cursor ru
 | Auto-fix lint / format        | `bun run fix`                                |
 | Push DB schema                | `bun run db:push`                            |
 | Generate migrations           | `bun run db:generate`                        |
-| Run migrations                | `bun run db:migrate`                         |
+| Run migrations (local)                    | `bun run db:migrate` |
+| Prod migrations (primary)                 | Railway api pre-deploy `./migrate` — see `infra/railway/api.json` |
 | DB studio                     | `bun run db:studio`                          |
 | Configure product slug / TLDs | `bun run configure-product <slug>`           |
 | Regenerate nginx / hosts      | `bun run sync:local-infra`                   |
@@ -178,9 +179,9 @@ Every app that derives URLs needs **`APP_ENV` + `DEPLOY_PLATFORM`** — naming d
 
 ### Cloud deploy (Railway + Doppler)
 
-**Primary migrate:** Railway api pre-deploy (`infra/railway/api.toml`) with internal `DATABASE_URL` from Doppler Sync. **App deploy:** Railway auto-deploy on merge — no GHA redeploy step.
+**Primary migrate:** Railway api pre-deploy (`infra/railway/api.json`) with internal `DATABASE_URL` from Doppler Sync.
 
-**Escape hatch:** manual [deploy.yml](../.github/workflows/deploy.yml) — `check-types` + `db:migrate` using GitHub Environment `DATABASE_URL` (`staging` / `production`). No Doppler CLI in CI.
+**App deploy:** Railway GitHub integration — **staging** auto-deploys on merge to `main` (after green `ci.yml`); **production** is manual Deploy in Railway UI. Not GHA. Build/deploy commands, health checks, and watch paths are config-as-code in `infra/railway/*.json`; Auto deploy / Wait for CI are dashboard settings — see [DEPLOY-RUNBOOK.md](infra/railway/DEPLOY-RUNBOOK.md#config-as-code-vs-dashboard).
 
 **Doppler project:** `api` · configs `dev`, `dev_personal`, `stg`, `prd` · Sync to Railway api only. Console / marketing / docs use committed mode files.
 

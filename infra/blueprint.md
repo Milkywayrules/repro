@@ -124,7 +124,7 @@ To migrate stg or prod:
 | `GET /health` | **Liveness**  | process responds    | process hung (restart container) |
 | `GET /ready`  | **Readiness** | Postgres `SELECT 1` | DB down (stop routing traffic)   |
 
-**Railway api deploy healthcheck:** `https://api.<host>/ready` — configured in `infra/railway/api.toml` (`healthcheckPath = "/ready"`). Fails the deploy if Postgres is unreachable.
+**Railway api deploy healthcheck:** `https://api.<host>/ready` — configured in `infra/railway/api.json` (`healthcheckPath`: `/ready`). Fails the deploy if Postgres is unreachable.
 
 **Manual liveness smoke:** `GET https://api.<host>/health` — process responds without DB check.
 

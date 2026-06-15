@@ -7,27 +7,36 @@ Railway service definitions as config-as-code. Application code is platform-agno
 - **Long-running Bun/Node services** (not serverless/edge).
 - One Railway project, one service per app: `api`, `console`, `marketing`, `docs`.
 - Postgres: Railway plugin **or** external `DATABASE_URL` (Neon, Supabase, etc.).
+- **Staging** auto-deploys on merge to `main` (filtered by `watchPatterns`); **production** deploys manually after staging validation. Both use **Wait for CI** (`ci.yml` must pass).
 
 ## Config as code
 
-Each service uses a dedicated TOML file (absolute path from repo root). Set **Settings → Config file path** in the Railway UI:
+Each service uses a dedicated JSON file (absolute path from repo root). Set **Settings → Config file path** in the Railway UI:
 
 | Service   | Config file path              |
 | --------- | ----------------------------- |
-| api       | `/infra/railway/api.toml`     |
-| console   | `/infra/railway/console.toml` |
-| marketing | `/infra/railway/marketing.toml` |
-| docs      | `/infra/railway/docs.toml`    |
+| api       | `/infra/railway/api.json`     |
+| console   | `/infra/railway/console.json` |
+| marketing | `/infra/railway/marketing.json` |
+| docs      | `/infra/railway/docs.json`    |
 
 **Root Directory:** `/` (repo root) for all four services. Dockerfiles run `COPY . .` and `bun install --frozen-lockfile` at monorepo root — do not set Root Directory to `apps/<app>`.
 
-Watch paths are explicit per service in each TOML (no `/packages/**` glob). Changes under `packages/env/**` intentionally redeploy all four services.
+Watch paths are explicit per service in each JSON config (no `/packages/**` glob). Changes under `packages/env/**` intentionally redeploy all four services.
+
+### What lives in JSON vs dashboard
+
+**In repo** ([railway.schema.json](https://railway.com/railway.schema.json)): `build.*`, `deploy.*`, optional `environments.{staging,production}` overrides.
+
+**Dashboard only** (per service × environment): Auto deploy (staging **On**, production **Off**), Wait for CI (**On**), GitHub repo link, Root Directory, config file path, custom domains, Doppler Sync targets.
+
+Full operator table: [DEPLOY-RUNBOOK.md](./DEPLOY-RUNBOOK.md#config-as-code-vs-dashboard).
 
 ### Region and replicas
 
-All four services pin Singapore (`asia-southeast1-eqsg3a`) with `numReplicas = 1` via `multiRegionConfig` in each TOML `[deploy]` block.
+All four services pin Singapore (`asia-southeast1-eqsg3a`) with `numReplicas = 1` via `multiRegionConfig` in each JSON `deploy` block.
 
-**Caveat:** region and replica selection may require a Railway plan that supports region selection. If deploy rejects `multiRegionConfig`, remove that key from the affected service TOML.
+**Caveat:** region and replica selection may require a Railway plan that supports region selection. If deploy rejects `multiRegionConfig`, remove that key from the affected service JSON config.
 
 ### Deploy overlap
 
@@ -81,19 +90,13 @@ docker build -f apps/console/Dockerfile --build-arg BUILD_MODE=staging -t repro-
 
 ## Migrations (api only)
 
-**Primary path:** Railway **pre-deploy command** on the api service (defined in `infra/railway/api.toml` as array form `["cd /app && bun run packages/db/src/migrate.ts"]`):
+**Cloud:** Railway **pre-deploy** (`infra/railway/api.json` → `["./migrate"]`). Compiled binary + SQL in the api image; internal `DATABASE_URL` from Doppler Sync.
 
-```bash
-cd /app && bun run packages/db/src/migrate.ts
-```
+**Local:** `bun run db:migrate` — same `packages/db/src/migrate.ts`; needs Bun and deps from repo root (`bun install`).
 
-Railway runs pre-deploy from the container working directory, not the monorepo root — the command must `cd /app` first (matches Docker `WORKDIR /app`). It uses drizzle-orm's bundled `migrate()` migrator so the production API image no longer ships `turbo` or `drizzle-kit` (those remain dev-only for `db:generate` / `db:push` / `db:studio`).
+Runtime image is distroless (no Bun) — see [Elysia production deploy](https://elysiajs.com/patterns/deploy).
 
-Runs inside Railway's network before the new api container starts, so the internal `DATABASE_URL` from Doppler Sync works without exposing it to GitHub.
-
-**Postgres SSL:** `packages/db` disables TLS for `*.railway.internal` and `localhost`; public hosts use TLS. If the GHA escape hatch fails TLS verification against the public proxy host, append `?sslmode=no-verify` to the GitHub Environment `DATABASE_URL` secret.
-
-**Escape hatch:** [`.github/workflows/deploy.yml`](../../.github/workflows/deploy.yml) — manual `workflow_dispatch` migrate using GitHub Environment `DATABASE_URL` (public proxy URL — GitHub runners cannot reach `*.railway.internal`). Use only when Railway pre-deploy is unavailable. Not the primary migrate path.
+**Postgres SSL:** `packages/db` disables TLS for `*.railway.internal` and `localhost`; public hosts use TLS.
 
 ## Console build
 
@@ -126,7 +129,7 @@ Production `bun run build` relies on Next.js loading `.env.production` when `NOD
 
 ## Health checks
 
-Configured in each service TOML (`healthcheckPath`, `healthcheckTimeout`):
+Configured in each service JSON config (`healthcheckPath`, `healthcheckTimeout`):
 
 | Service   | Path     | Timeout | Notes |
 | --------- | -------- | ------- | ----- |
@@ -137,7 +140,7 @@ Configured in each service TOML (`healthcheckPath`, `healthcheckTimeout`):
 
 Liveness for manual smoke: `GET /health` on api (always `{ status: 'ok' }` without DB).
 
-Do **not** add a Docker `HEALTHCHECK` instruction — Railway uses `healthcheckPath` from each service TOML; a container healthcheck is redundant.
+Do **not** add a Docker `HEALTHCHECK` instruction — Railway uses `healthcheckPath` from each service JSON config; a container healthcheck is redundant.
 
 ## Custom domains
 
@@ -158,21 +161,21 @@ Change `DEPLOY_PLATFORM=contabo` in Doppler, point `DATABASE_URL` at Coolify Pos
 
 ## Dockerfile
 
-Each app has a Dockerfile at `apps/<app>/Dockerfile`. Build context must be the **repo root** (`docker build -f apps/<app>/Dockerfile .`). On Railway, set Root Directory to repo root and point each service at its TOML + `dockerfilePath`. Api secrets arrive via Doppler Sync.
+Each app has a Dockerfile at `apps/<app>/Dockerfile`. Build context must be the **repo root** (`docker build -f apps/<app>/Dockerfile .`). On Railway, set Root Directory to repo root and point each service at its JSON config + `dockerfilePath`. Api secrets arrive via Doppler Sync.
 
 Multi-stage layout — **build** compiles; **runner** is what ships:
 
 | Stage | Role |
 | ----- | ---- |
 | `build` | Cache-friendly `package.json` copy → `bun install --frozen-lockfile` → **`COPY . .`** (full monorepo) → app build via turbo filter |
-| `*-runtime-deps` | api / console only — resolve production npm deps for bare-import runtime bundles |
+| `*-runtime-deps` | console only — resolve production npm deps for bare-import runtime bundles |
 | `runner` | Slim runtime image — compiled artifacts (+ minimal extras where noted), no source tree |
 
 Console, marketing, and docs accept `BUILD_MODE=staging` (default `production`) to pick staging vs production env files at build time.
 
 | App | Build stage | Runner stage |
 | --- | ----------- | ------------ |
-| **api** | `oven/bun:1.3.14` — `bun run --filter api build` | `oven/bun:1.3.14-slim` — `dist/` + `api-runtime-deps` `node_modules`; keeps `packages/db`, `packages/env/src`, and standalone `packages/db/src/migrate.ts` for pre-deploy migrations. Runner installs only `--production --filter @repro/db` (no turbo/drizzle-kit). CMD: `bun run dist/index.mjs` |
+| **api** | `oven/bun:1.3.14` — `bun build --compile` for `server` + `migrate` | `gcr.io/distroless/base-debian12:nonroot` — compiled `./server` + `./migrate` + `/app/migrations`. CMD: `./server`. No Bun or `node_modules` at runtime. |
 | **console** | `oven/bun:1.3.14` — `build` or `build:staging` | `oven/bun:1.3.14-slim` — `dist/` + `console-runtime-deps` `node_modules` only. CMD: `bun run dist/server/server.js` |
 | **marketing** | `oven/bun:1.3.14` — Astro `build` / `build:staging` | `nginxinc/nginx-unprivileged:1.27-alpine` — static `dist/` + nginx template; runs non-root on port 8080 by default (Railway injects `$PORT`). No Node/Bun at runtime |
 | **docs** | `node:22-slim` + copied `bun` binary — `postinstall`, then Next `build` / `build:staging` | `node:22-slim` — Next.js **standalone** output (`.next/standalone` + static). CMD: `node apps/docs/server.js` |
@@ -181,7 +184,7 @@ Console, marketing, and docs accept `BUILD_MODE=staging` (default `production`) 
 
 See **[DEPLOY-RUNBOOK.md](./DEPLOY-RUNBOOK.md)** for operator order, UI checklist, migration discipline, rollback, and [production readiness checklist](./DEPLOY-RUNBOOK.md#production-readiness-checklist).
 
-Quick path: Doppler `stg`/`prd` filled → Railway Sync (auto-redeploy OFF) → four services with config paths above → GitHub auto-deploy → smoke `GET /ready` on api.
+Quick path: Doppler `stg`/`prd` filled → Railway Sync (auto-redeploy OFF) → four services with config paths above → staging auto-deploy on `main` → smoke staging → manual production Deploy → smoke `GET /ready` on api.
 
 Checklists: [doppler/README.md](../doppler/README.md), [DEPLOY-RUNBOOK.md](./DEPLOY-RUNBOOK.md).
 
@@ -190,16 +193,15 @@ Checklists: [doppler/README.md](../doppler/README.md), [DEPLOY-RUNBOOK.md](./DEP
 Dashboard actions not captured in repo code. Complete after first deploy; revisit before production cutover. Full operator context: [DEPLOY-RUNBOOK.md](./DEPLOY-RUNBOOK.md#production-readiness-checklist).
 
 - [ ] (deferred) Railway managed Postgres backups require a paid plan; on free tier, interim option is a scheduled `pg_dump` (GHA cron → object storage). until then, data loss from a bad migration is unrecoverable.
-- [ ] (declined, by choice) Check Suites not enabled — Railway auto-deploys on merge independently of `ci.yml`; a red build can ship. accepted trade-off.
-- [x] set Doppler `stg`/`prd` `DATABASE_URL` to the internal host `postgres.railway.internal` — done; GitHub Environment secret stays on the public proxy for the escape hatch
+- [x] **Wait for CI** on staging and production — required gate before Railway builds (pairs with staging auto-deploy).
+- [x] set Doppler `stg`/`prd` `DATABASE_URL` to the internal host `postgres.railway.internal`
 - [ ] (later) Set up deploy notifications (email or webhook to Slack/Discord) — surface failed deploys without polling the dashboard
 - [ ] (later) Front services with Cloudflare for WAF + DDoS
 - [ ] (later) Add a log drain for evlog output to an external sink
 
 ## TODO (supervisor)
 
-- [x] Config-as-code: `infra/railway/{api,console,marketing,docs}.toml`
-- [x] Migrate escape hatch: GHA workflow with GitHub Environment `DATABASE_URL`
+- [x] Config-as-code: `infra/railway/{api,console,marketing,docs}.json`
 - [x] Operator runbook: [DEPLOY-RUNBOOK.md](./DEPLOY-RUNBOOK.md)
 - [ ] Doppler → Railway Sync for api `stg` and `prd`
 - [ ] Staging project/service naming

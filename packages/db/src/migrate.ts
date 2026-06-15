@@ -4,16 +4,18 @@ import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import { Pool } from 'pg'
 
 import { resolveSsl } from './ssl'
+import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-// local dev: same source as drizzle-kit (`apps/api/.env`); CI/Railway pass DATABASE_URL in env
-dotenv.config({
-  path: path.resolve(
-    path.dirname(fileURLToPath(import.meta.url)),
-    '../../../apps/api/.env',
-  ),
-})
+const moduleDir = path.dirname(fileURLToPath(import.meta.url))
+
+if (!process.env.DATABASE_URL) {
+  const apiEnvPath = path.resolve(moduleDir, '../../../apps/api/.env')
+  if (existsSync(apiEnvPath)) {
+    dotenv.config({ path: apiEnvPath })
+  }
+}
 
 const connectionString = process.env.DATABASE_URL
 if (!connectionString) {
@@ -21,12 +23,14 @@ if (!connectionString) {
   process.exit(1)
 }
 
+const migrationsFolder =
+  process.env.MIGRATIONS_DIR ?? path.join(moduleDir, 'migrations')
+
 const pool = new Pool({
   connectionString,
   ssl: resolveSsl(connectionString, process.env.DEPLOY_PLATFORM === 'local'),
 })
 const db = drizzle(pool)
-const migrationsFolder = fileURLToPath(new URL('./migrations', import.meta.url))
 
 try {
   await migrate(db, { migrationsFolder })

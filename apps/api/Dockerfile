@@ -1,7 +1,17 @@
 # syntax=docker/dockerfile:1
 # Build from repo ROOT:  docker build -f apps/api/Dockerfile -t repro-api .
+#
+# Elysia production pattern: compile to standalone binaries, distroless runtime.
+# https://elysiajs.com/patterns/deploy
 FROM oven/bun:1.3.14 AS build
 WORKDIR /app
+
+ARG TARGETARCH
+RUN case "${TARGETARCH}" in \
+  amd64) echo bun-linux-x64 > /tmp/bun-target ;; \
+  arm64) echo bun-linux-arm64 > /tmp/bun-target ;; \
+  *) echo bun-linux-x64 > /tmp/bun-target ;; \
+  esac
 
 COPY package.json bun.lock turbo.json ./
 COPY apps/api/package.json apps/api/
@@ -17,50 +27,33 @@ COPY packages/ui/package.json packages/ui/
 RUN bun install --frozen-lockfile --ignore-scripts
 
 COPY . .
-RUN bun run --filter api build
 
-FROM oven/bun:1.3.14 AS api-runtime-deps
-WORKDIR /app/api-runtime
-COPY --from=build /app/package.json /app/package.json
-COPY --from=build /app/apps/api/package.json ./package.json.full
-RUN bun -e "\
-const root = JSON.parse(await Bun.file('/app/package.json').text()); \
-const catalog = root.workspaces?.catalog ?? {}; \
-const pkg = JSON.parse(await Bun.file('package.json.full').text()); \
-delete pkg.devDependencies; \
-for (const [name, spec] of Object.entries(pkg.dependencies ?? {})) { \
-  const value = String(spec); \
-  if (value.startsWith('workspace:')) delete pkg.dependencies[name]; \
-  else if (value === 'catalog:') pkg.dependencies[name] = catalog[name]; \
-  else if (value.startsWith('catalog:')) pkg.dependencies[name] = catalog[value.slice(8)]; \
-} \
-pkg.dependencies['drizzle-orm'] = '^0.45.1'; \
-await Bun.write('package.json', JSON.stringify(pkg, null, 2)); \
-" && rm package.json.full /app/package.json && bun install --production --ignore-scripts
+RUN BUN_TARGET="$(cat /tmp/bun-target)" && \
+  bun build --compile \
+    --minify-whitespace \
+    --minify-syntax \
+    --target "${BUN_TARGET}" \
+    --outfile /app/server \
+    apps/api/src/index.ts && \
+  bun build --compile \
+    --minify-whitespace \
+    --minify-syntax \
+    --target "${BUN_TARGET}" \
+    --outfile /app/migrate \
+    packages/db/src/migrate.ts
 
-FROM oven/bun:1.3.14-slim AS runner
+# Railway pre-deploy runs ./migrate from this image before traffic switches (see infra/railway/api.json).
+# Migrate must ship in the same artifact as the server — Railway pre-deploy uses the deployment image, not a separate service.
+FROM gcr.io/distroless/base-debian12:nonroot AS runner
 WORKDIR /app
+
+COPY --from=build --chmod=755 /app/server ./server
+COPY --from=build --chmod=755 /app/migrate ./migrate
+COPY --from=build /app/packages/db/src/migrations ./migrations
+
 ENV NODE_ENV=production
+ENV MIGRATIONS_DIR=/app/migrations
 
-# Railway preDeployCommand: cd /app && bun run db:migrate
-COPY package.json bun.lock ./
-COPY apps/api/package.json apps/api/
-COPY apps/browser-extension/package.json apps/browser-extension/
-COPY apps/console/package.json apps/console/
-COPY apps/docs/package.json apps/docs/
-COPY apps/marketing/package.json apps/marketing/
-COPY packages/auth/package.json packages/auth/
-COPY packages/config/package.json packages/config/
-COPY packages/db ./packages/db
-COPY packages/env/package.json packages/env/
-COPY packages/env/src packages/env/src
-COPY packages/ui/package.json packages/ui/
-RUN bun install --frozen-lockfile --ignore-scripts --production --filter @repro/db
-
-WORKDIR /app/apps/api
-COPY --from=build /app/apps/api/dist ./dist
-COPY --from=api-runtime-deps /app/api-runtime/node_modules ./node_modules
-
-USER bun
 EXPOSE 5000
-CMD ["bun", "run", "dist/index.mjs"]
+USER nonroot:nonroot
+CMD ["./server"]
