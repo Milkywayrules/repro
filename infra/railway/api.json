@@ -9,6 +9,7 @@
       "/packages/auth/**",
       "/packages/db/**",
       "/packages/env/**",
+      "/packages/ui/**",
       "/packages/config/**",
       "/infra/railway/api.json",
       "/package.json",
