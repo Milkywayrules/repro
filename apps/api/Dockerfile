@@ -42,7 +42,7 @@ FROM oven/bun:1.3.14-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-# Railway preDeployCommand: cd /app && bun run packages/db/src/migrate.ts
+# Railway preDeployCommand: cd /app && bun run db:migrate
 COPY package.json bun.lock ./
 COPY apps/api/package.json apps/api/
 COPY apps/browser-extension/package.json apps/browser-extension/

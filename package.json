@@ -29,7 +29,7 @@
     "db:push": "turbo -F @repro/db db:push",
     "db:studio": "turbo -F @repro/db db:studio",
     "db:generate": "turbo -F @repro/db db:generate",
-    "db:migrate": "turbo -F @repro/db db:migrate",
+    "db:migrate": "bun run packages/db/src/migrate.ts",
     "check": "ultracite check",
     "fix": "ultracite fix",
     "setup:local": "bash scripts/setup-local.sh",

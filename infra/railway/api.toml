@@ -19,7 +19,7 @@ watchPatterns = [
 ]
 
 [deploy]
-preDeployCommand = ["cd /app && bun run packages/db/src/migrate.ts"]
+preDeployCommand = ["cd /app && bun run db:migrate"]
 healthcheckPath = "/ready"
 healthcheckTimeout = 120
 restartPolicyType = "ON_FAILURE"
