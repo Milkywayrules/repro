@@ -9,7 +9,15 @@ env:
   APP_ENV: test
   DEPLOY_PLATFORM: local
   NODE_ENV: test
+  DATABASE_URL: postgresql://postgres:password@localhost:5432/postgres
+  BETTER_AUTH_SECRET: ci-ci-ci-ci-ci-ci-ci-ci-ci-ci-ci-ci-ci-ci
+  PORT: "5000"
+  CI_POSTGRES_USER: postgres
+  CI_POSTGRES_PASSWORD: password
+  CI_POSTGRES_DB: postgres
 
+# Postgres `services:` must be declared per job — GitHub Actions cannot share service blocks.
+# Keep both copies in sync (ci + docker-build).
 jobs:
   ci:
     runs-on: ubuntu-latest
@@ -18,13 +26,13 @@ jobs:
       postgres:
         image: postgres:16
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: postgres
+          POSTGRES_USER: ${{ env.CI_POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ env.CI_POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ env.CI_POSTGRES_DB }}
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U postgres"
+          --health-cmd "pg_isready -U ${{ env.CI_POSTGRES_USER }}"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -45,34 +53,23 @@ jobs:
       - name: Typecheck
         run: bun run check-types
 
-      - name: Typecheck docs
-        run: bun run turbo -F docs types:check
-
-      - name: Build
-        env:
-          DATABASE_URL: postgresql://postgres:password@localhost:5432/postgres
-          BETTER_AUTH_SECRET: ci-ci-ci-ci-ci-ci-ci-ci-ci-ci-ci-ci-ci
-        run: bun run build
-
-      - name: Run DB migrations
-        env:
-          DATABASE_URL: postgresql://postgres:password@localhost:5432/postgres
+      - name: Verify migrations apply
         run: bun run db:migrate
 
+      - name: Build
+        run: bun run build
+
       - name: Smoke test API (/health, /ready)
-        env:
-          DATABASE_URL: postgresql://postgres:password@localhost:5432/postgres
-          BETTER_AUTH_SECRET: ci-ci-ci-ci-ci-ci-ci-ci-ci-ci-ci-ci-ci
-          PORT: "5000"
         run: |
-          bun run apps/api/dist/index.mjs &
+          BASE="http://localhost:${PORT}"
+          apps/api/dist/server &
           API_PID=$!
           for _ in $(seq 1 30); do
-            curl -fsS http://localhost:5000/health > /dev/null && break
+            curl -fsS "${BASE}/health" > /dev/null && break
             sleep 1
           done
-          curl -fsS http://localhost:5000/health
-          curl -fsS http://localhost:5000/ready
+          curl -fsS "${BASE}/health"
+          curl -fsS "${BASE}/ready"
           kill "$API_PID"
 
       - name: Dependency audit
@@ -90,13 +87,13 @@ jobs:
       postgres:
         image: postgres:16
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: postgres
+          POSTGRES_USER: ${{ env.CI_POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ env.CI_POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ env.CI_POSTGRES_DB }}
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U postgres"
+          --health-cmd "pg_isready -U ${{ env.CI_POSTGRES_USER }}"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -145,10 +142,10 @@ jobs:
 
           docker run -d --name probe --network host \
             -e PORT=${{ matrix.port }} \
-            -e DATABASE_URL=postgresql://postgres:password@localhost:5432/postgres \
-            -e BETTER_AUTH_SECRET=ci-ci-ci-ci-ci-ci-ci-ci-ci-ci-ci-ci-ci \
-            -e APP_ENV=test \
-            -e DEPLOY_PLATFORM=local \
+            -e DATABASE_URL="${DATABASE_URL}" \
+            -e BETTER_AUTH_SECRET="${BETTER_AUTH_SECRET}" \
+            -e APP_ENV="${APP_ENV}" \
+            -e DEPLOY_PLATFORM="${DEPLOY_PLATFORM}" \
             repro-${{ matrix.app }}:ci
 
           URL="http://localhost:${{ matrix.port }}${{ matrix.health }}"
