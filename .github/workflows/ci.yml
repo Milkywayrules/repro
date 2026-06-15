@@ -58,16 +58,17 @@ jobs:
 
       - name: Smoke test API (/health, /ready)
         run: |
+          set -euo pipefail
           BASE="http://localhost:${PORT}"
           apps/api/dist/server &
           API_PID=$!
+          trap 'kill "$API_PID" 2>/dev/null || true' EXIT
           for _ in $(seq 1 30); do
             curl -fsS "${BASE}/health" > /dev/null && break
             sleep 1
           done
           curl -fsS "${BASE}/health"
           curl -fsS "${BASE}/ready"
-          kill "$API_PID"
 
       - name: Dependency audit
         continue-on-error: true
