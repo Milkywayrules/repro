@@ -46,7 +46,7 @@ jobs:
         run: bun run check-types
 
       - name: Typecheck docs
-        run: turbo -F docs types:check
+        run: bun run turbo -F docs types:check
 
       - name: Build
         env:
