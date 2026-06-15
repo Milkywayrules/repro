@@ -141,10 +141,10 @@ Railway does not auto-rollback database migrations. App rollback is per service.
 
 Dashboard actions not captured in repo code. Complete after first deploy; revisit before production cutover.
 
-- [ ] Enable Railway Postgres backups — data-loss protection
-- [ ] Enable Check Suites so Railway waits for `ci.yml` to pass before deploying — prevents shipping a red build
-- [ ] Set Doppler `stg`/`prd` `DATABASE_URL` to internal host `postgres.railway.internal:5432` — free in-network access for runtime and pre-deploy migrate
-- [ ] Set up deploy notifications (email or webhook to Slack/Discord) — surface failed deploys without polling the dashboard
+- [ ] (deferred) Railway managed Postgres backups require a paid plan; on free tier, interim option is a scheduled `pg_dump` (GHA cron → object storage). until then, data loss from a bad migration is unrecoverable.
+- [ ] (declined, by choice) Check Suites not enabled — Railway auto-deploys on merge independently of `ci.yml`; a red build can ship. accepted trade-off.
+- [x] set Doppler `stg`/`prd` `DATABASE_URL` to the internal host `postgres.railway.internal` — done; GitHub Environment secret stays on the public proxy for the escape hatch
+- [ ] (later) Set up deploy notifications (email or webhook to Slack/Discord) — surface failed deploys without polling the dashboard
 - [ ] (later) Front services with Cloudflare for WAF + DDoS
 - [ ] (later) Add a log drain for evlog output to an external sink
 
