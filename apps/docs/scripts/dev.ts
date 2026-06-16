@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import { env } from "@repro/env/docs";
 
-const appDir = dirname(fileURLToPath(import.meta.url));
+const appDir = dirname(dirname(fileURLToPath(import.meta.url)));
 
 const child = spawn(
   "bunx",
