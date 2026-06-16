@@ -6,6 +6,7 @@ const documentAppCsp = buildDocumentAppCsp()
 
 // biome-ignore lint/style/noDefaultExport: Nitro requires a default export
 export default defineConfig({
+  preset: 'bun',
   experimental: {
     asyncContext: true,
   },

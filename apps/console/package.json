@@ -3,12 +3,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "vite build --configLoader runner",
-    "build:staging": "vite build --mode staging --configLoader runner",
+    "build": "bun --bun vite build --configLoader runner",
+    "build:staging": "bun --bun vite build --mode staging --configLoader runner",
     "check-types": "tsr generate && tsc --noEmit",
-    "serve": "vite preview --configLoader runner",
+    "serve": "bun --bun vite preview --configLoader runner",
     "start": "bun run dist/server/server.js",
-    "dev": "vite dev --configLoader runner"
+    "dev": "bun --bun vite dev --configLoader runner"
   },
   "dependencies": {
     "@repro/env": "workspace:*",

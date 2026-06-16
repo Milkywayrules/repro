@@ -6,12 +6,12 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
-    "build:staging": "astro build --mode staging",
-    "preview": "astro preview",
-    "check-types": "astro check",
-    "astro": "astro"
+    "dev": "bun x --bun astro dev",
+    "build": "bun x --bun astro build",
+    "build:staging": "bun x --bun astro build --mode staging",
+    "preview": "bun x --bun astro preview",
+    "check-types": "bun x --bun astro check",
+    "astro": "bun x --bun astro"
   },
   "dependencies": {
     "@repro/env": "workspace:*",
