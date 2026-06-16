@@ -9,7 +9,7 @@
     "dev": "bun x --bun astro dev",
     "build": "bun x --bun astro build",
     "build:staging": "bun x --bun astro build --mode staging",
-    "preview": "bun x --bun astro preview",
+    "start": "bun x --bun astro preview",
     "check-types": "bun x --bun astro check",
     "astro": "bun x --bun astro"
   },
