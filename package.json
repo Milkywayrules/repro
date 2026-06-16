@@ -21,6 +21,7 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
+    "build:docker": "turbo build:docker",
     "check-types": "turbo check-types",
     "dev:console": "turbo -F console dev",
     "dev:api": "turbo -F api dev",

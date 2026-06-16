@@ -1,19 +1,55 @@
 services:
   db:
-    image: postgres:16
+    image: postgres:18
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DB: postgres
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata_here:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
       interval: 10s
       timeout: 5s
       retries: 5
+
+  api:
+    image: repro-api
+    restart: unless-stopped
+    ports:
+      - '5000:5000'
+    env_file:
+      - apps/api/.env.development
+    depends_on:
+      db:
+        condition: service_healthy
+
+  console:
+    image: repro-console
+    restart: unless-stopped
+    ports:
+      - '5001:5001'
+    env_file:
+      - apps/console/.env.development
+
+  marketing:
+    image: repro-marketing
+    restart: unless-stopped
+    ports:
+      - '5002:5002'
+    env_file:
+      - apps/marketing/.env.development
+
+  docs:
+    image: repro-docs
+    restart: unless-stopped
+    ports:
+      - '5009:5009'
+    env_file:
+      - apps/docs/.env.development
+
 volumes:
-  pgdata:
+  pgdata_here:

@@ -12,6 +12,9 @@
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**", ".output/**", ".next/**", "!.next/cache/**"]
     },
+    "build:docker": {
+      "cache": false
+    },
     "lint": {
       "dependsOn": ["^lint"]
     },

@@ -7,6 +7,7 @@
   },
   "scripts": {
     "dev": "bun x --bun astro dev",
+    "build:docker": "docker build -f Dockerfile -t repro-marketing ../..",
     "build": "bun x --bun astro build",
     "build:staging": "bun x --bun astro build --mode staging",
     "start": "bun x --bun astro preview",

@@ -15,6 +15,14 @@ COPY --from=prune /app/out/full/ .
 
 ARG RAILWAY_ENVIRONMENT_NAME
 ARG BUILD_MODE=production
+# VITE_* vars are baked into the client bundle at build time — declare here so
+# Railway injects them; only required when VITE_DEPLOY_PLATFORM=custom
+ARG VITE_DEPLOY_PLATFORM
+ARG VITE_APP_ENV
+ARG VITE_API_URL
+ARG VITE_CONSOLE_URL
+ARG VITE_DOCS_URL
+ARG VITE_MARKETING_URL
 RUN if [ "$RAILWAY_ENVIRONMENT_NAME" = "staging" ] || [ "$BUILD_MODE" = "staging" ]; then bunx turbo run build:staging --filter=console...; else bunx turbo run build --filter=console...; fi
 
 # dist/server/server.js keeps bare imports (react, @tanstack/*) — install prod externals only
@@ -44,8 +52,9 @@ WORKDIR /app/apps/console
 ENV NODE_ENV=production
 
 COPY --from=build /app/apps/console/dist ./dist
+COPY --from=build /app/apps/console/server.ts ./server.ts
 COPY --from=console-runtime-deps /app/console-runtime/node_modules ./node_modules
 
 USER bun
 EXPOSE 5001
-CMD ["bun", "run", "dist/server/server.js"]
+CMD ["bun", "run", "server.ts"]

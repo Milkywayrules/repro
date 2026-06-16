@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "build:docker": "docker build -f Dockerfile -t repro-docs ../..",
     "build": "bun next build",
     "build:staging": "bun --env-file=.env.staging next build",
     "dev": "bun run ./scripts/dev.ts",

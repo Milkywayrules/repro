@@ -3,11 +3,12 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build:docker": "docker build -f Dockerfile -t repro-console ../..",
     "build": "bun --bun vite build --configLoader runner",
     "build:staging": "bun --bun vite build --mode staging --configLoader runner",
     "check-types": "tsr generate && tsc --noEmit",
     "serve": "bun --bun vite preview --configLoader runner",
-    "start": "bun run dist/server/server.js",
+    "start": "bun run server.ts",
     "dev": "bun --bun vite dev --configLoader runner"
   },
   "dependencies": {
