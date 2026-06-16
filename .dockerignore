@@ -5,6 +5,7 @@ node_modules
 **/.output
 **/.next
 **/.turbo
+out
 **/.astro
 .agents
 _bmad

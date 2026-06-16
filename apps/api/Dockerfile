@@ -3,6 +3,11 @@
 #
 # Elysia production pattern: compile to standalone binaries, distroless runtime.
 # https://elysiajs.com/patterns/deploy
+FROM oven/bun:1.3.14 AS prune
+WORKDIR /app
+COPY . .
+RUN bunx turbo@2.9.16 prune api --docker
+
 FROM oven/bun:1.3.14 AS build
 WORKDIR /app
 
@@ -13,23 +18,10 @@ RUN case "${TARGETARCH}" in \
   *) echo bun-linux-x64 > /tmp/bun-target ;; \
   esac
 
-COPY package.json bun.lock turbo.json ./
-
-COPY apps/api/package.json apps/api/
-COPY apps/browser-extension/package.json apps/browser-extension/
-COPY apps/console/package.json apps/console/
-COPY apps/docs/package.json apps/docs/
-COPY apps/marketing/package.json apps/marketing/
-
-COPY packages/auth/package.json packages/auth/
-COPY packages/config/package.json packages/config/
-COPY packages/db/package.json packages/db/
-COPY packages/env/package.json packages/env/
-COPY packages/ui/package.json packages/ui/
-
+COPY --from=prune /app/out/json/ .
 RUN bun install --frozen-lockfile --ignore-scripts
 
-COPY . .
+COPY --from=prune /app/out/full/ .
 
 RUN BUN_TARGET="$(cat /tmp/bun-target)" && \
   bun build --compile \

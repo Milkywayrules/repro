@@ -3,34 +3,29 @@
 # Next.js needs REAL Node.js (not bun's node shim) for native-module resolution
 # (e.g. @takumi-rs OG image generation) at both build and runtime. We use the
 # node base image and bring in the bun binary only to run install + the build script.
-FROM node:22-slim AS build
+FROM node:24-slim AS prune
+WORKDIR /app
+COPY --from=oven/bun:1.3.14 /usr/local/bin/bun /usr/local/bin/bun
+COPY . .
+RUN bunx turbo@2.9.16 prune docs --docker
+
+FROM node:24-slim AS build
 WORKDIR /app
 COPY --from=oven/bun:1.3.14 /usr/local/bin/bun /usr/local/bin/bun
 
-COPY package.json bun.lock turbo.json ./
-
-COPY apps/api/package.json apps/api/
-COPY apps/browser-extension/package.json apps/browser-extension/
-COPY apps/console/package.json apps/console/
-COPY apps/docs/package.json apps/docs/
-COPY apps/marketing/package.json apps/marketing/
-
-COPY packages/auth/package.json packages/auth/
-COPY packages/config/package.json packages/config/
-COPY packages/db/package.json packages/db/
-COPY packages/env/package.json packages/env/
-COPY packages/ui/package.json packages/ui/
-
+COPY --from=prune /app/out/json/ .
 RUN bun install --frozen-lockfile --ignore-scripts
 
-COPY . .
+COPY --from=prune /app/out/full/ .
+
 RUN bun run --filter docs postinstall
 ARG RAILWAY_ENVIRONMENT_NAME
 ARG BUILD_MODE=production
-RUN if [ "$RAILWAY_ENVIRONMENT_NAME" = "staging" ] || [ "$BUILD_MODE" = "staging" ]; then bun run --filter docs build:staging; else bun run --filter docs build; fi
+RUN if [ "$RAILWAY_ENVIRONMENT_NAME" = "staging" ] || [ "$BUILD_MODE" = "staging" ]; then bunx turbo run build:staging --filter=docs...; else bunx turbo run build --filter=docs...; fi
 
-FROM node:22-slim AS runner
+FROM node:24-slim AS runner
 WORKDIR /app
+
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
 
@@ -40,4 +35,5 @@ RUN mkdir -p ./apps/docs/public
 
 USER node
 EXPOSE 5009
+# node needed for takumi-rs image generation
 CMD ["node", "apps/docs/server.js"]
