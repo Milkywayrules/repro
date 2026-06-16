@@ -7,7 +7,7 @@ FROM node:24-slim AS prune
 WORKDIR /app
 COPY --from=oven/bun:1.3.14 /usr/local/bin/bun /usr/local/bin/bun
 COPY . .
-RUN bunx turbo@2.9.16 prune docs --docker
+RUN bun x turbo@2.9.16 prune docs --docker
 
 FROM node:24-slim AS build
 WORKDIR /app
@@ -21,7 +21,7 @@ COPY --from=prune /app/out/full/ .
 RUN bun run --filter docs postinstall
 ARG RAILWAY_ENVIRONMENT_NAME
 ARG BUILD_MODE=production
-RUN if [ "$RAILWAY_ENVIRONMENT_NAME" = "staging" ] || [ "$BUILD_MODE" = "staging" ]; then bunx turbo run build:staging --filter=docs...; else bunx turbo run build --filter=docs...; fi
+RUN if [ "$RAILWAY_ENVIRONMENT_NAME" = "staging" ] || [ "$BUILD_MODE" = "staging" ]; then bun x turbo run build:staging --filter=docs...; else bun x turbo run build --filter=docs...; fi
 
 FROM node:24-slim AS runner
 WORKDIR /app
