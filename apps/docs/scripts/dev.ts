@@ -7,8 +7,8 @@ import { env } from "@repro/env/docs";
 const appDir = dirname(dirname(fileURLToPath(import.meta.url)));
 
 const child = spawn(
-  "bunx",
-  ["next", "dev", "--hostname=0.0.0.0", "-p", String(env.PORT)],
+  "bun",
+  ["--bun", "next", "dev", "--hostname=0.0.0.0", "-p", String(env.PORT)],
   {
     cwd: appDir,
     stdio: "inherit",

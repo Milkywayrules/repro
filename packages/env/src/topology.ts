@@ -8,8 +8,11 @@ export {
   deriveCorsOrigins,
   deriveUrls,
   getHostConfig,
+  getServiceUrls,
   localDevPorts,
   publicUrl,
+  type ServiceUrlOverrides,
+  type ServiceUrls,
 } from './lib/domains.ts'
 export {
   cloudBaseDomain,

@@ -57,14 +57,17 @@ export function getHostConfig(
   }
 }
 
-export interface DerivedUrls {
+export interface ServiceUrls {
   API_URL: string
   CONSOLE_URL: string
   DOCS_URL: string
   MARKETING_URL: string
 }
 
-export function deriveUrls(config: HostConfig): DerivedUrls {
+/** alias for intent clarity — passed by callers, not derived */
+export type ServiceUrlOverrides = ServiceUrls
+
+export function deriveUrls(config: HostConfig): ServiceUrls {
   return {
     API_URL: publicUrl(config.api, config.base),
     CONSOLE_URL: publicUrl(config.console, config.base),
@@ -73,16 +76,38 @@ export function deriveUrls(config: HostConfig): DerivedUrls {
   }
 }
 
-/** surfaces that call the API — console, marketing, docs (not extension) */
-export function deriveCorsOrigins(config: HostConfig): string[] {
-  return [
-    publicUrl(config.console, config.base),
-    publicUrl(config.marketing, config.base),
-    publicUrl(config.docs, config.base),
-  ]
+/**
+ * single entry-point for resolving service URLs.
+ * when deployPlatform is 'custom', overrides are required — each service has
+ * an independent opaque URL with no shared base to derive from.
+ */
+export function getServiceUrls(
+  appEnv: AppEnv,
+  deployPlatform: DeployPlatform,
+  overrides?: ServiceUrlOverrides,
+): ServiceUrls {
+  if (deployPlatform === 'custom') {
+    if (!overrides) {
+      throw new Error(
+        'DEPLOY_PLATFORM=custom requires explicit URL overrides (API_URL, CONSOLE_URL, DOCS_URL, MARKETING_URL)',
+      )
+    }
+    return overrides
+  }
+  return deriveUrls(getHostConfig(appEnv, deployPlatform))
 }
 
-export function defaultCookieDomain(deployPlatform: DeployPlatform): string {
+/** surfaces that call the API — console, marketing, docs (not extension) */
+export function deriveCorsOrigins(urls: ServiceUrls): string[] {
+  return [urls.CONSOLE_URL, urls.MARKETING_URL, urls.DOCS_URL]
+}
+
+export function defaultCookieDomain(
+  deployPlatform: DeployPlatform,
+): string | null {
+  if (deployPlatform === 'custom') {
+    return null
+  }
   const base = deployPlatform === 'local' ? localBaseDomain : cloudBaseDomain
   return cookieDomainForBase(base)
 }
